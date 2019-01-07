@@ -50,13 +50,13 @@ class EavAttributeGroup extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'attribute_group_id' => Yii::t('shop', 'Attribute Group Id'),
-            'attribute_set_id' => Yii::t('shop', 'Attribute Set Id'),
-            'attribute_group_name' => Yii::t('shop', 'Attribute Group Name'),
-            'sort_order' => Yii::t('shop', 'Sort Order'),
-            'default_id' => Yii::t('shop', 'Default Id'),
-            'attribute_group_code' => Yii::t('shop', 'Attribute Group Code'),
-            'tab_group_code' => Yii::t('shop', 'Tab Group Code'),
+            'attribute_group_id' => Yii::t('app', 'Attribute Group Id'),
+            'attribute_set_id' => Yii::t('app', 'Attribute Set Id'),
+            'attribute_group_name' => Yii::t('app', 'Attribute Group Name'),
+            'sort_order' => Yii::t('app', 'Sort Order'),
+            'default_id' => Yii::t('app', 'Default Id'),
+            'attribute_group_code' => Yii::t('app', 'Attribute Group Code'),
+            'tab_group_code' => Yii::t('app', 'Tab Group Code'),
         ];
     }
 

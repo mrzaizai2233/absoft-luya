@@ -44,10 +44,10 @@ class EavAttributeOptionValue extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'value_id' => Yii::t('shop', 'Value Id'),
-            'option_id' => Yii::t('shop', 'Option Id'),
-            'store_id' => Yii::t('shop', 'Store Id'),
-            'value' => Yii::t('shop', 'Value'),
+            'value_id' => Yii::t('app', 'Value Id'),
+            'option_id' => Yii::t('app', 'Option Id'),
+            'store_id' => Yii::t('app', 'Store Id'),
+            'value' => Yii::t('app', 'Value'),
         ];
     }
 

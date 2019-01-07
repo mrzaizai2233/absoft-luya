@@ -63,23 +63,23 @@ class EavAttribute extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'attribute_id' => Yii::t('shop', 'Attribute Id'),
-            'entity_type_id' => Yii::t('shop', 'Entity Type Id'),
-            'attribute_code' => Yii::t('shop', 'Attribute Code'),
-            'attribute_model' => Yii::t('shop', 'Attribute Model'),
-            'backend_model' => Yii::t('shop', 'Backend Model'),
-            'backend_type' => Yii::t('shop', 'Backend Type'),
-            'backend_table' => Yii::t('shop', 'Backend Table'),
-            'frontend_model' => Yii::t('shop', 'Frontend Model'),
-            'frontend_input' => Yii::t('shop', 'Frontend Input'),
-            'frontend_label' => Yii::t('shop', 'Frontend Label'),
-            'frontend_class' => Yii::t('shop', 'Frontend Class'),
-            'source_model' => Yii::t('shop', 'Source Model'),
-            'is_required' => Yii::t('shop', 'Defines Is Required'),
-            'is_user_defined' => Yii::t('shop', 'Defines Is User Defined'),
-            'default_value' => Yii::t('shop', 'Default Value'),
-            'is_unique' => Yii::t('shop', 'Defines Is Unique'),
-            'note' => Yii::t('shop', 'Note'),
+            'attribute_id' => Yii::t('app', 'Attribute Id'),
+            'entity_type_id' => Yii::t('app', 'Entity Type Id'),
+            'attribute_code' => Yii::t('app', 'Attribute Code'),
+            'attribute_model' => Yii::t('app', 'Attribute Model'),
+            'backend_model' => Yii::t('app', 'Backend Model'),
+            'backend_type' => Yii::t('app', 'Backend Type'),
+            'backend_table' => Yii::t('app', 'Backend Table'),
+            'frontend_model' => Yii::t('app', 'Frontend Model'),
+            'frontend_input' => Yii::t('app', 'Frontend Input'),
+            'frontend_label' => Yii::t('app', 'Frontend Label'),
+            'frontend_class' => Yii::t('app', 'Frontend Class'),
+            'source_model' => Yii::t('app', 'Source Model'),
+            'is_required' => Yii::t('app', 'Defines Is Required'),
+            'is_user_defined' => Yii::t('app', 'Defines Is User Defined'),
+            'default_value' => Yii::t('app', 'Default Value'),
+            'is_unique' => Yii::t('app', 'Defines Is Unique'),
+            'note' => Yii::t('app', 'Note'),
         ];
     }
 
@@ -122,4 +122,34 @@ class EavAttribute extends \yii\db\ActiveRecord
     {
         return $this->hasMany(EavAttributeGroup::className(), ['attribute_group_id' => 'attribute_group_id'])->viaTable('{{%eav_entity_attribute}}', ['attribute_id' => 'attribute_id']);
     }
+
+    /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getEntityType(){
+        return $this->hasOne(EavEntityType::className(),['entity_type_id'=>'entity_type_id']);
+    }
+
+    public function saveAttributeValue($entity_id, $value, $store_id){
+        /** @var EavEntityType $entityType */
+        $tableName = str_replace(' ', '', ucwords(str_replace('_', ' ', $this->entityType->entity_table.'_'.$this->backend_type)));
+        Yii::$app->getDb()->createCommand()->insert($tableName,[
+            'attribute_id'=>$this->attribute_id,
+            'entity_id'=>$entity_id,
+            'store_id'=>$store_id? $store_id: Store::DEFAULT_STORE_ID,
+            'value'=>$value
+        ])->execute();
+    }
+
+    public function getEavAttributeByAttributeSet($attribute_set_id){
+        return $this::find()
+            ->select('*')
+            ->innerJoin('eav_attribute_set','eav_attribute_set.attribute_set_id = eav_entity_attribute.attribute_set_id')
+            ->innerJoin('eav_attribute_group','eav_attribute_group.attribute_group_id = eav_entity_attribute.attribute_group_id')
+            ->innerJoin('eav_attribute','eav_attribute.attribute_id = eav_entity_attribute.attribute_id')
+            ->where('eav_attribute_set.attribute_set_id = :sid',[':sid'=>$attribute_set_id])
+            ->all();
+    }
+
+
 }

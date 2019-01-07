@@ -55,22 +55,22 @@ class EavEntityType extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'entity_type_id' => Yii::t('shop', 'Entity Type Id'),
-            'entity_type_code' => Yii::t('shop', 'Entity Type Code'),
-            'entity_model' => Yii::t('shop', 'Entity Model'),
-            'attribute_model' => Yii::t('shop', 'Attribute Model'),
-            'entity_table' => Yii::t('shop', 'Entity Table'),
-            'value_table_prefix' => Yii::t('shop', 'Value Table Prefix'),
-            'entity_id_field' => Yii::t('shop', 'Entity Id Field'),
-            'is_data_sharing' => Yii::t('shop', 'Defines Is Data Sharing'),
-            'data_sharing_key' => Yii::t('shop', 'Data Sharing Key'),
-            'default_attribute_set_id' => Yii::t('shop', 'Default Attribute Set Id'),
-            'increment_model' => Yii::t('shop', 'Increment Model'),
-            'increment_per_store' => Yii::t('shop', 'Increment Per Store'),
-            'increment_pad_length' => Yii::t('shop', 'Increment Pad Length'),
-            'increment_pad_char' => Yii::t('shop', 'Increment Pad Char'),
-            'additional_attribute_table' => Yii::t('shop', 'Additional Attribute Table'),
-            'entity_attribute_collection' => Yii::t('shop', 'Entity Attribute Collection'),
+            'entity_type_id' => Yii::t('app', 'Entity Type Id'),
+            'entity_type_code' => Yii::t('app', 'Entity Type Code'),
+            'entity_model' => Yii::t('app', 'Entity Model'),
+            'attribute_model' => Yii::t('app', 'Attribute Model'),
+            'entity_table' => Yii::t('app', 'Entity Table'),
+            'value_table_prefix' => Yii::t('app', 'Value Table Prefix'),
+            'entity_id_field' => Yii::t('app', 'Entity Id Field'),
+            'is_data_sharing' => Yii::t('app', 'Defines Is Data Sharing'),
+            'data_sharing_key' => Yii::t('app', 'Data Sharing Key'),
+            'default_attribute_set_id' => Yii::t('app', 'Default Attribute Set Id'),
+            'increment_model' => Yii::t('app', 'Increment Model'),
+            'increment_per_store' => Yii::t('app', 'Increment Per Store'),
+            'increment_pad_length' => Yii::t('app', 'Increment Pad Length'),
+            'increment_pad_char' => Yii::t('app', 'Increment Pad Char'),
+            'additional_attribute_table' => Yii::t('app', 'Additional Attribute Table'),
+            'entity_attribute_collection' => Yii::t('app', 'Entity Attribute Collection'),
         ];
     }
 }

@@ -47,11 +47,11 @@ class CatalogProductEntityInt extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'value_id' => Yii::t('shop', 'Value ID'),
-            'attribute_id' => Yii::t('shop', 'Attribute ID'),
-            'store_id' => Yii::t('shop', 'Store ID'),
-            'entity_id' => Yii::t('shop', 'Entity ID'),
-            'value' => Yii::t('shop', 'Value'),
+            'value_id' => Yii::t('app', 'Value ID'),
+            'attribute_id' => Yii::t('app', 'Attribute ID'),
+            'store_id' => Yii::t('app', 'Store ID'),
+            'entity_id' => Yii::t('app', 'Entity ID'),
+            'value' => Yii::t('app', 'Value'),
         ];
     }
 

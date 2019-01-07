@@ -43,10 +43,10 @@ class EavAttributeSet extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'attribute_set_id' => Yii::t('shop', 'Attribute Set Id'),
-            'entity_type_id' => Yii::t('shop', 'Entity Type Id'),
-            'attribute_set_name' => Yii::t('shop', 'Attribute Set Name'),
-            'sort_order' => Yii::t('shop', 'Sort Order'),
+            'attribute_set_id' => Yii::t('app', 'Attribute Set Id'),
+            'entity_type_id' => Yii::t('app', 'Entity Type Id'),
+            'attribute_set_name' => Yii::t('app', 'Attribute Set Name'),
+            'sort_order' => Yii::t('app', 'Sort Order'),
         ];
     }
 

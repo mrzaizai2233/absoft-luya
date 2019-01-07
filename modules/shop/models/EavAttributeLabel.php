@@ -44,10 +44,10 @@ class EavAttributeLabel extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'attribute_label_id' => Yii::t('shop', 'Attribute Label Id'),
-            'attribute_id' => Yii::t('shop', 'Attribute Id'),
-            'store_id' => Yii::t('shop', 'Store Id'),
-            'value' => Yii::t('shop', 'Value'),
+            'attribute_label_id' => Yii::t('app', 'Attribute Label Id'),
+            'attribute_id' => Yii::t('app', 'Attribute Id'),
+            'store_id' => Yii::t('app', 'Store Id'),
+            'value' => Yii::t('app', 'Value'),
         ];
     }
 

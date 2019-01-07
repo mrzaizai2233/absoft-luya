@@ -41,9 +41,9 @@ class EavAttributeOption extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'option_id' => Yii::t('shop', 'Option Id'),
-            'attribute_id' => Yii::t('shop', 'Attribute Id'),
-            'sort_order' => Yii::t('shop', 'Sort Order'),
+            'option_id' => Yii::t('app', 'Option Id'),
+            'attribute_id' => Yii::t('app', 'Attribute Id'),
+            'sort_order' => Yii::t('app', 'Sort Order'),
         ];
     }
 

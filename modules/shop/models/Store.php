@@ -21,6 +21,7 @@ use Yii;
  */
 class Store extends \yii\db\ActiveRecord
 {
+    CONST DEFAULT_STORE_ID = 1;
     /**
      * {@inheritdoc}
      */
@@ -49,13 +50,13 @@ class Store extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'store_id' => Yii::t('shop', 'Store Id'),
-            'code' => Yii::t('shop', 'Code'),
-            'website_id' => Yii::t('shop', 'Website Id'),
-            'group_id' => Yii::t('shop', 'Group Id'),
-            'name' => Yii::t('shop', 'Store Name'),
-            'sort_order' => Yii::t('shop', 'Store Sort Order'),
-            'is_active' => Yii::t('shop', 'Store Activity'),
+            'store_id' => Yii::t('app', 'Store Id'),
+            'code' => Yii::t('app', 'Code'),
+            'website_id' => Yii::t('app', 'Website Id'),
+            'group_id' => Yii::t('app', 'Group Id'),
+            'name' => Yii::t('app', 'Store Name'),
+            'sort_order' => Yii::t('app', 'Store Sort Order'),
+            'is_active' => Yii::t('app', 'Store Activity'),
         ];
     }
 

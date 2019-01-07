@@ -27,91 +27,146 @@ class CatalogProductEntity extends \yii\db\ActiveRecord
     const SKU_CODE = 'sku';
 
     const EAV_ENTITY_TYPE_ID = 4;
+
+    const DEFAULT_ATTRIBUTES = [ 'entity_id' , 'attribute_set_id' , 'type_id' , 'created_at' , 'updated_at' , 'sku' ];
+
+    public $eav_attributes;
+
+    public $store_id;
+
+    public $entity_table = 'catalog_product_entity';
     /**
      * {@inheritdoc}
      */
-    public static function tableName()
+    public static function tableName ()
     {
-        return '{{%catalog_product_entity}}';
+        return "{{%catalog_product_entity}}";
     }
 
     /**
      * {@inheritdoc}
      */
-    public function rules()
+    public function rules ()
     {
         return [
-            [['attribute_set_id', 'has_options', 'required_options'], 'integer'],
-            [['created_at', 'updated_at'], 'safe'],
-            [['type_id'], 'string', 'max' => 32],
-            [['sku'], 'string', 'max' => 64],
-            [['attribute_set_id'], 'exist', 'skipOnError' => true, 'targetClass' => EavAttributeSet::className(), 'targetAttribute' => ['attribute_set_id' => 'attribute_set_id']],
+            [ [ 'attribute_set_id' , 'has_options' , 'required_options' ] , 'integer' ] ,
+            [ [ 'created_at' , 'updated_at' ] , 'safe' ] ,
+            [ [ 'type_id' ] , 'string' , 'max' => 32 ] ,
+            [ [ 'sku' ] , 'string' , 'max' => 64 ] ,
+            [ [ 'attribute_set_id' ] , 'exist' , 'skipOnError' => true , 'targetClass' => EavAttributeSet::className() , 'targetAttribute' => [ 'attribute_set_id' => 'attribute_set_id' ] ] ,
         ];
     }
 
     /**
      * {@inheritdoc}
      */
-    public function attributeLabels()
+    public function attributeLabels ()
     {
         return [
-            'entity_id' => Yii::t('shop', 'Entity ID'),
-            'attribute_set_id' => Yii::t('shop', 'Attribute Set ID'),
-            'type_id' => Yii::t('shop', 'Type ID'),
-            'sku' => Yii::t('shop', 'SKU'),
-            'has_options' => Yii::t('shop', 'Has Options'),
-            'required_options' => Yii::t('shop', 'Required Options'),
-            'created_at' => Yii::t('shop', 'Creation Time'),
-            'updated_at' => Yii::t('shop', 'Update Time'),
+            'entity_id' => Yii::t( 'app' , 'Entity ID' ) ,
+            'attribute_set_id' => Yii::t( 'app' , 'Attribute Set ID' ) ,
+            'type_id' => Yii::t( 'app' , 'Type ID' ) ,
+            'sku' => Yii::t( 'app' , 'SKU' ) ,
+            'has_options' => Yii::t( 'app' , 'Has Options' ) ,
+            'required_options' => Yii::t( 'app' , 'Required Options' ) ,
+            'created_at' => Yii::t( 'app' , 'Creation Time' ) ,
+            'updated_at' => Yii::t( 'app' , 'Update Time' ) ,
         ];
     }
 
     /**
      * @return \yii\db\ActiveQuery
      */
-    public function getAttributeSet()
+    public function getAttributeSet ()
     {
-        return $this->hasOne(EavAttributeSet::className(), ['attribute_set_id' => 'attribute_set_id']);
+        return $this->hasOne( EavAttributeSet::className() , [ 'attribute_set_id' => 'attribute_set_id' ] );
     }
 
     /**
      * @return \yii\db\ActiveQuery
      */
-    public function getCatalogProductEntityDatetimes()
+    public function getCatalogProductEntityDatetimes ()
     {
-        return $this->hasMany(CatalogProductEntityDatetime::className(), ['entity_id' => 'entity_id']);
+        return $this->hasMany( CatalogProductEntityDatetime::className() , [ 'entity_id' => 'entity_id' ] );
     }
 
     /**
      * @return \yii\db\ActiveQuery
      */
-    public function getCatalogProductEntityDecimals()
+    public function getCatalogProductEntityDecimals ()
     {
-        return $this->hasMany(CatalogProductEntityDecimal::className(), ['entity_id' => 'entity_id']);
+        return $this->hasMany( CatalogProductEntityDecimal::className() , [ 'entity_id' => 'entity_id' ] );
     }
 
     /**
      * @return \yii\db\ActiveQuery
      */
-    public function getCatalogProductEntityTexts()
+    public function getCatalogProductEntityTexts ()
     {
-        return $this->hasMany(CatalogProductEntityText::className(), ['entity_id' => 'entity_id']);
+        return $this->hasMany( CatalogProductEntityText::className() , [ 'entity_id' => 'entity_id' ] );
     }
 
     /**
      * @return \yii\db\ActiveQuery
      */
-    public function getCatalogProductEntityVarchars()
+    public function getCatalogProductEntityVarchars ()
     {
-        return $this->hasMany(CatalogProductEntityVarchar::className(), ['entity_id' => 'entity_id']);
+        return $this->hasMany( CatalogProductEntityVarchar::className() , [ 'entity_id' => 'entity_id' ] );
     }
 
-    public function getAllEavAttributes(){
-        $eavEnityAttribute = EavEntityAttribute::find()
-            ->select([])
-            ->leftJoin('eav_attribute_set','eav_attribute_set.attribute_set_id = eav_entity_attribute.attribute_set_id')
-            ->leftJoin('eav_attribute_group','eav_attribute_group.attribute_group_id = eav_entity_attribute.attribute_group_id')
-            ->leftJoin('eav_attribute','eav_attribute.attribute_id = eav_entity_attribute.attribute_id')->all();
+    public function getAllEavAttributes ()
+    {
+        $eavEnityAttributes = EavEntityAttribute::find()
+            ->select( '*' )
+            ->innerJoin( 'eav_attribute_set' , 'eav_attribute_set.attribute_set_id = eav_entity_attribute.attribute_set_id' )
+            ->innerJoin( 'eav_attribute_group' , 'eav_attribute_group.attribute_group_id = eav_entity_attribute.attribute_group_id' )
+            ->innerJoin( 'eav_attribute' , 'eav_attribute.attribute_id = eav_entity_attribute.attribute_id' )->all();
+    }
 
+    public function afterSave ( $insert , $changedAttributes )
+    {
+//        foreach ($this->eav_attributes as $attribute_code => $attribute_value) {
+//
+//            $attribute = EavAttribute::findOne(['attribute_code'=>$attribute_code,'entity_type_id'=>CatalogProductEntity::EAV_ENTITY_TYPE_ID]);
+//            $attribute->saveAttributeValue($this->entity_id,$attribute_value,null);
+//        }
+        $this->saveEavAttributes();
+        parent::afterSave( $insert , $changedAttributes ); // TODO: Change the autogenerated stub
+    }
+
+
+    public function saveEavAttributes ()
+    {
+
+        $eavEnityAttributes = EavAttribute::find()
+            ->where( [ 'in' , 'eav_attribute.attribute_code' , array_keys($this->eav_attributes)] )
+            ->andWhere( [ 'eav_attribute.entity_type_id' => self::EAV_ENTITY_TYPE_ID ] )
+            ->all();
+
+        $_preAttributeToSaves = [];
+        foreach ($this->eav_attributes as $eav_attribute_code => $eav_attribute_value) {
+            foreach ($eavEnityAttributes as $index => $eavEnityAttribute) {
+                if ($eavEnityAttribute->attribute_code == $eav_attribute_code) {
+                    $_preAttributeToSaves[ $eavEnityAttribute->backend_type ][ $eavEnityAttribute->attribute_id ] = $eav_attribute_value;
+                    unset($eavEnityAttributes[$index]);
+                }
+            }
+        }
+
+        $attributeToSaves = [];
+        foreach ($_preAttributeToSaves as $type => $preAttributeToSave) {
+            foreach ($preAttributeToSave as $attribute_id => $value) {
+                $attributeToSaves[$type][]=[
+                    'attribute_id'=>$attribute_id,
+                    'entity_id'=>$this->entity_id,
+                    'store_id'=>$this->store_id,
+                    'value'=>$value
+                ];
+            }
+        }
+        foreach ($attributeToSaves as $type => $attributeToSave) {
+            $command=Yii::$app->getDb()->createCommand()->insert($this->entity_table.'_'.$type,$attributeToSave);
+            $command->execute();
+        }
     }
 }
