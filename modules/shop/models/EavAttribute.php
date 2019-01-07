@@ -151,5 +151,13 @@ class EavAttribute extends \yii\db\ActiveRecord
             ->all();
     }
 
+    public static function getEntityAttributeByCodes($entity_type,$code=[]){
+        self::find()
+            ->where( [ 'in' , 'eav_attribute.attribute_code' , $code] )
+            ->andWhere( [ 'eav_attribute.entity_type_id' => $entity_type] )
+            ->all();
+    }
+
+
 
 }

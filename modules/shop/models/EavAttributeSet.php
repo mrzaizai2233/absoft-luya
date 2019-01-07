@@ -65,4 +65,12 @@ class EavAttributeSet extends \yii\db\ActiveRecord
     {
         return $this->hasMany(EavAttributeGroup::className(), ['attribute_set_id' => 'attribute_set_id']);
     }
+
+    public function getEntityAttributes(){
+        $attributesData = $this::findAll(['attribute_set_id'=>$this->attribute_set_id,'entity_type_id'=>$this->entity_type_id]);
+        $attributes = [];
+        foreach ($attributesData as $attributesDatum) {
+//            $attributes[$attributesDatum->]
+        }
+    }
 }
