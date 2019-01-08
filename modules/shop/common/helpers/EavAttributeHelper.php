@@ -11,7 +11,9 @@ namespace app\modules\shop\common\helpers;
 
 use app\modules\shop\models\CatalogProductEntity;
 use app\modules\shop\models\EavAttribute;
+use app\modules\shop\models\EavEntityAttribute;
 use app\modules\shop\models\Store;
+use yii\data\ActiveDataProvider;
 
 class EavAttributeHelper
 {
@@ -19,9 +21,9 @@ class EavAttributeHelper
     /**
      * @param $entityType
      * @param object $object
+     * @return array
      */
-    public function getEntityAttributes($entityType, $object = null){
-        $store_id = $object->store_id?$object->store_id: Store::DEFAULT_STORE_ID;
+    public static function getEntityAttributes($entityType, $object = null){
         $attribute_set_id = $object->attribute_set_id?$object->attribute_set_id:CatalogProductEntity::DEFUALT_ATTRIBUTE_SET;
         $attributesData = EavAttribute::find()
             ->leftJoin('eav_attribute_set','eav_attribute_set.entity_type_id = eav_attribute.entity_type_id')
@@ -33,6 +35,10 @@ class EavAttributeHelper
             $attributes[$attribute->attribute_code]= $attribute;
         }
         return $attributes;
+    }
+
+    public function getEntityAttributesValue($entityType){
+
     }
 
 }

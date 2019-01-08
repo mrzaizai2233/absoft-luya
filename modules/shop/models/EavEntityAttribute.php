@@ -59,9 +59,17 @@ class EavEntityAttribute extends \yii\db\ActiveRecord
     /**
      * @return \yii\db\ActiveQuery
      */
-    public function getAttribute0()
+    public function getEavAttribute()
     {
         return $this->hasOne(EavAttribute::className(), ['attribute_id' => 'attribute_id']);
+    }
+
+    /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getEavAttributeSet()
+    {
+        return $this->hasOne(EavAttributeSet::className(), ['attribute_set_id' => 'attribute_set_id']);
     }
 
     /**

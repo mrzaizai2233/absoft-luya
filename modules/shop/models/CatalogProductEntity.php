@@ -2,6 +2,7 @@
 
 namespace app\modules\shop\models;
 
+use app\modules\shop\common\helpers\EavAttributeHelper;
 use Yii;
 use yii\db\Exception;
 
@@ -14,6 +15,7 @@ use yii\db\Exception;
  * @property string $sku SKU
  * @property int $has_options Has Options
  * @property int $required_options Required Options
+ * @property EavAttribute[] $_eav_attributes_object Required Options
  * @property string $created_at Creation Time
  * @property string $updated_at Update Time
  *
@@ -33,11 +35,166 @@ class CatalogProductEntity extends \yii\db\ActiveRecord
 
     const DEFUALT_ATTRIBUTE_SET = 1;
 
-    public $eav_attributes;
+    private $_data = [];
 
-    public $store_id;
+    private $_eav_attributes = [];
 
-    public $entity_table = 'catalog_product_entity';
+    /**
+     * Setter/Getter underscore transformation cache
+     *
+     *
+     */
+
+    private $_eav_attributes_object = [];
+
+    private $_entity_table = 'catalog_product_entity';
+
+    /**
+     * Setter/Getter underscore transformation cache
+     *
+     * @var array
+     */
+    protected static $_underscoreCache = [];
+
+    public function setData($key, $value=null){
+        if ($key === (array)$key) {
+            $this->_data = $key;
+        } else {
+            $this->_data[$key] = $value;
+        }
+        return $this;
+    }
+
+    /**
+     * Add data to the object.
+     *
+     * Retains previous data in the object.
+     *
+     * @param array $arr
+     * @return $this
+     */
+    public function addData(array $arr)
+    {
+        foreach ($arr as $index => $value) {
+            $this->setData($index, $value);
+        }
+        return $this;
+    }
+
+    public function getData($key ='',$index=null){
+        if($key===''){
+            return $this->_data;
+        }
+        return $this->_getData($key);
+    }
+
+    private function _getData($key){
+        if(isset($this->_data[$key])){
+            return $this->_data[$key];
+        }
+        return null;
+    }
+
+    /**
+     * Unset data from the object.
+     *
+     * @param null|string|array $key
+     * @return $this
+     */
+    public function unsetData($key = null)
+    {
+        if ($key === null) {
+            $this->setData([]);
+        } elseif (is_string($key)) {
+            if (isset($this->_data[$key]) || array_key_exists($key, $this->_data)) {
+                unset($this->_data[$key]);
+            }
+        } elseif ($key === (array)$key) {
+            foreach ($key as $element) {
+                $this->unsetData($element);
+            }
+        }
+        return $this;
+    }
+
+    /**
+     * Set object data with calling setter method
+     *
+     * @param string $key
+     * @param mixed $args
+     * @return $this
+     */
+    public function setDataUsingMethod($key, $args = [])
+    {
+        $method = 'set' . str_replace(' ', '', ucwords(str_replace('_', ' ', $key)));
+        $this->{$method}($args);
+        return $this;
+    }
+
+    /**
+     * Get object data by key with calling getter method
+     *
+     * @param string $key
+     * @param mixed $args
+     * @return mixed
+     */
+    public function getDataUsingMethod($key, $args = null)
+    {
+        $method = 'get' . str_replace(' ', '', ucwords(str_replace('_', ' ', $key)));
+        return $this->{$method}($args);
+    }
+
+    /**
+     * Set/Get attribute wrapper
+     *
+     * @param   string $method
+     * @param   array $args
+     * @return  mixed
+     * @throws \luya\Exception
+     */
+    public function __call($method, $args)
+    {
+        switch (substr($method, 0, 3)) {
+            case 'get':
+
+                $key = $this->_underscore(substr($method, 3));
+                $index = isset($args[0]) ? $args[0] : null;
+                return $this->getData($key, $index);
+            case 'set':
+
+                $key = $this->_underscore(substr($method, 3));
+                $value = isset($args[0]) ? $args[0] : null;
+                return $this->setData($key, $value);
+            case 'uns':
+                $key = $this->_underscore(substr($method, 3));
+                return $this->unsetData($key);
+            case 'has':
+                $key = $this->_underscore(substr($method, 3));
+                return isset($this->_data[$key]);
+        }
+        throw new \luya\Exception(
+            new Yii::$app->t('Invalid method %1::%2', [get_class($this), $method])
+        );
+    }
+
+    /**
+     * Converts field names for setters and getters
+     *
+     * $this->setMyField($value) === $this->setData('my_field', $value)
+     * Uses cache to eliminate unnecessary preg_replace
+     *
+     * @param string $name
+     * @return string
+     */
+    protected function _underscore($name)
+    {
+        if (isset(self::$_underscoreCache[$name])) {
+            return self::$_underscoreCache[$name];
+        }
+        $result = strtolower(trim(preg_replace('/([A-Z]|[0-9]+)/', "_$1", $name), '_'));
+        self::$_underscoreCache[$name] = $result;
+        return $result;
+    }
     /**
      * {@inheritdoc}
      */
@@ -85,6 +242,7 @@ class CatalogProductEntity extends \yii\db\ActiveRecord
         return $this->hasOne( EavAttributeSet::className() , [ 'attribute_set_id' => 'attribute_set_id' ] );
     }
 
+
     /**
      * @return \yii\db\ActiveQuery
      */
@@ -117,86 +275,92 @@ class CatalogProductEntity extends \yii\db\ActiveRecord
         return $this->hasMany( CatalogProductEntityVarchar::className() , [ 'entity_id' => 'entity_id' ] );
     }
 
-    public function getAllEavAttributes ()
+    private function _initEavAttributes ()
     {
-        $eavEnityAttributes = EavEntityAttribute::find()
-            ->select( '*' )
-            ->innerJoin( 'eav_attribute_set' , 'eav_attribute_set.attribute_set_id = eav_entity_attribute.attribute_set_id' )
-            ->innerJoin( 'eav_attribute_group' , 'eav_attribute_group.attribute_group_id = eav_entity_attribute.attribute_group_id' )
-            ->innerJoin( 'eav_attribute' , 'eav_attribute.attribute_id = eav_entity_attribute.attribute_id' )->all();
+        $this->_eav_attributes_object = EavAttributeHelper::getEntityAttributes(self::EAV_ENTITY_TYPE_ID,$this);
     }
 
     public function afterSave ( $insert , $changedAttributes )
     {
-//        foreach ($this->eav_attributes as $attribute_code => $attribute_value) {
-//
-//            $attribute = EavAttribute::findOne(['attribute_code'=>$attribute_code,'entity_type_id'=>CatalogProductEntity::EAV_ENTITY_TYPE_ID]);
-//            $attribute->saveAttributeValue($this->entity_id,$attribute_value,null);
-//        }
+        $this->_initEavAttributes();
+
         if($insert){
             $this->saveEavAttributes();
         } else {
-
+            $this->updateEavAttributes();
         }
         parent::afterSave( $insert , $changedAttributes ); // TODO: Change the autogenerated stub
     }
 
-    public function getEntityAttributes(){
-
-    }
-
-
-    /**
-     * @throws Exception
-     */
-    public function saveEavAttributes ()
-    {
-
-        $eavEnityAttributes = EavAttribute::getEntityAttributeByCodes(array_keys($this->eav_attributes),self::EAV_ENTITY_TYPE_ID);
-
-        $_preAttributeToSaves = [];
-        foreach ($this->eav_attributes as $eav_attribute_code => $eav_attribute_value) {
-            foreach ($eavEnityAttributes as $index => $eavEnityAttribute) {
-                if ($eavEnityAttribute->attribute_code == $eav_attribute_code) {
-                    $_preAttributeToSaves[ $eavEnityAttribute->backend_type ][ $eavEnityAttribute->attribute_id ] = $eav_attribute_value;
-                    unset($eavEnityAttributes[$index]);
-                }
-            }
+    public function saveEavAttributes(){
+        $datas = $this->getData();
+        foreach ($datas as $code => $value) {
+            $attribute = $this->getEavAttributes($code);
+            $tableName = $this->getEntityTable().'_'.$attribute->backend_type;
+            $this->_insertAttributeValue($tableName,$attribute->attribute_id,$value);
         }
-
-        $attributeToSaves = [];
-        foreach ($_preAttributeToSaves as $type => $preAttributeToSave) {
-            foreach ($preAttributeToSave as $attribute_id => $value) {
-                $attributeToSaves[$type][]=[
-                    'attribute_id'=>$attribute_id,
-                    'entity_id'=>$this->entity_id,
-                    'store_id'=>$this->store_id,
-                    'value'=>$value
-                ];
-            }
-        }
-        $connection = Yii::$app->getDb();
-        $transection = $connection->beginTransaction();
-        try {
-            foreach ($attributeToSaves as $type => $attributeToSave) {
-                $connection->createCommand()
-                    ->batchInsert(
-                        $this->entity_table.'_'.$type,
-                        [ 'attribute_id','entity_id','store_id','value'],
-                        $attributeToSave
-                    )->execute();
-            }
-            $transection->commit();
-        } catch (Exception $e){
-            $transection->rollBack();
-            Yii::$app->getSession()->setFlash('error',Yii::t('app','Add product faild'));
-        }
-
     }
 
     public function updateEavAttributes(){
-        $eavEnityAttributes = EavAttribute::getEntityAttributeByCodes(array_keys($this->eav_attributes),self::EAV_ENTITY_TYPE_ID);
+        $datas = $this->getData();
+        foreach ($datas as $code => $value) {
+            $this->_updateAttributeValue($code,$value);
+        }
+    }
 
+    private function _insertAttributeValue($tableName,$attribute_id,$value){
+        Yii::$app->getDb()->createCommand()->insert( $tableName , [
+            'attribute_id' => $attribute_id,
+            'entity_id' => $this->entity_id,
+            'store_id' => $this->getStoreId(),
+            'value' => $value
+        ] )->execute();
+    }
+    private function _updateAttributeValue($code,$value){
+        $attribute = $this->getEavAttributes($code);
+        $tableName = $this->getEntityTable().'_'.$attribute->backend_type;
+
+        $attribute_id = $attribute->attribute_id;
+        $result = (new \yii\db\Query())->select(['*'])
+            ->from( $tableName )
+            ->where([
+                'attribute_id' => $attribute_id ,
+                'entity_id' => $this->entity_id,
+                'store_id' => $this->getStoreId()
+            ])->one();
+        if($result){
+            Yii::$app->getDb()->createCommand()->update($tableName,['value'=>$value],[
+                'entity_id'=>$this->entity_id,
+                'attribute_id'=>$attribute_id
+            ])->execute();
+        } else {
+            $this->_insertAttributeValue($tableName,$attribute_id,$value);
+        }
+    }
+
+
+    public function getEavAttributes ($code = null)
+    {
+        if(empty($this->_eav_attributes_object)){
+            $this->_initEavAttributes();
+        }
+        if($code){
+            if(isset($this->_eav_attributes_object[$code])){
+                return $attribute = $this->_eav_attributes_object[$code];
+            }
+        }
+        return $this->_eav_attributes_object[$code];
+    }
+
+    public function getEntityTable(){
+        return $this->_entity_table;
+    }
+
+    public function getStoreId(){
+        if($this->getData('store_id')){
+            return $this->getData('store_id');
+        }
+        return Store::DEFAULT_STORE_ID;
     }
 }
 
