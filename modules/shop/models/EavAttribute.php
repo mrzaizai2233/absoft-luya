@@ -146,25 +146,40 @@ class EavAttribute extends \yii\db\ActiveRecord
 
     public function setEntity($object){
         $this->_entity= $object;
+        return $this;
     }
 
     public function getEntity(){
         return $this->_entity;
     }
 
-    public function saveAttributeValue ($store_id = null,$value)
+
+    public function getAttributeCode(){
+        return $this->attribute_code;
+    }
+
+    public function getBackendType(){
+        return $this->backend_type;
+    }
+
+    public function getAttributeId(){
+        return $this->attribute_id;
+    }
+
+    public function saveAttributeValue ($store_id = null, $value)
     {
         $entity = $this->getEntity();
         $store_id = $store_id ? $store_id : $entity->getStoreId();
         /** @var EavEntityType $entityType */
-        $tableName = str_replace( ' ' , '' , ucwords( str_replace( '_' , ' ' , $entity->getEntityTable() . '_' . $this->backend_type ) ) );
+        $tableName = $entity->getEntityTable() . '_' . $this->backend_type;
         Yii::$app->getDb()->createCommand()->insert( $tableName , [
             'attribute_id' => $this->attribute_id ,
-            'entity_id' => $entity->entity_id ,
+            'entity_id' => $entity->getEntityId() ,
             'store_id' => $store_id,
             'value' => $value
         ] )->execute();
     }
+
 
     public function getEavAttributeByAttributeSet ( $attribute_set_id )
     {
@@ -177,25 +192,30 @@ class EavAttribute extends \yii\db\ActiveRecord
             ->all();
     }
 
-    public function getValue ( $object = null )
+    /**
+     * @param CatalogProductEntity $object
+     * @return array|bool|null
+     */
+    public function getArrayValue ($object = null )
     {
-        $entity_id = $object->entity_id;
-        if (!$entity_id || $this->backend_type == 'static') {
+        $entity_id = $object->getEntityId();
+        if (!$entity_id || $this->getBackendType() == 'static') {
             return null;
         }
 
         $store_id = $object->store_id ? $object->store_id : Store::DEFAULT_STORE_ID;
         if ($store_id)
             $entityTable = $object->getEntityTable();
-        $tableName = $entityTable . '_' . $this->backend_type;
+        $tableName = $entityTable . '_' . $this->getBackendType();
         return (new \yii\db\Query())->select( '*' )->from( $tableName )
-            ->where( [
-                'attribute_id' => $this->attribute_id ,
+            ->where([
+                'attribute_id' => $this->getAttributeId() ,
                 'entity_id' => $entity_id ,
                 'store_id' => $store_id
-            ] )
+            ])
             ->one();
     }
+
 
     public function getOptions ()
     {

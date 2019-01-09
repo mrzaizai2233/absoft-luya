@@ -3,6 +3,7 @@
 namespace app\modules\shop\models;
 
 use app\modules\shop\common\helpers\EavAttributeHelper;
+use app\modules\shop\helpers\AttributeHelper;
 use Yii;
 use yii\db\Exception;
 
@@ -15,7 +16,7 @@ use yii\db\Exception;
  * @property string $sku SKU
  * @property int $has_options Has Options
  * @property int $required_options Required Options
- * @property EavAttribute[] $_eav_attributes_object Required Options
+ * @property EavAttribute[] $_eavAttributes Required Options
  * @property string $created_at Creation Time
  * @property string $updated_at Update Time
  *
@@ -45,9 +46,24 @@ class CatalogProductEntity extends \yii\db\ActiveRecord
      *
      */
 
-    private $_eav_attributes_object = [];
+    private $_eavAttributes = [];
 
-    private $_entity_table = 'catalog_product_entity';
+    /**
+     * Entity attribute values per backend table to delete
+     *
+     * @var array
+     */
+    protected $_attributeValuesToDelete = [];
+
+    /**
+     * Entity attribute values per backend table to save
+     *
+     * @var array
+     */
+    protected $_attributeValuesToSave = [];
+
+
+    private $_entityTable = 'catalog_product_entity';
 
     /**
      * Setter/Getter underscore transformation cache
@@ -275,15 +291,11 @@ class CatalogProductEntity extends \yii\db\ActiveRecord
         return $this->hasMany( CatalogProductEntityVarchar::className() , [ 'entity_id' => 'entity_id' ] );
     }
 
-    private function _initEavAttributes ()
-    {
-        $this->_eav_attributes_object = EavAttributeHelper::getEntityAttributes(self::EAV_ENTITY_TYPE_ID,$this);
-    }
+
 
     public function afterSave ( $insert , $changedAttributes )
     {
-        $this->_initEavAttributes();
-
+        $this->loadAllAttributes();
         if($insert){
             $this->saveEavAttributes();
         } else {
@@ -293,9 +305,10 @@ class CatalogProductEntity extends \yii\db\ActiveRecord
     }
 
     public function saveEavAttributes(){
+
         $datas = $this->getData();
         foreach ($datas as $code => $value) {
-            $attribute = $this->getEavAttributes($code);
+            $attribute = $this->getEavAttributeByCode($code);
             $tableName = $this->getEntityTable().'_'.$attribute->backend_type;
             $this->_insertAttributeValue($tableName,$attribute->attribute_id,$value);
         }
@@ -309,15 +322,15 @@ class CatalogProductEntity extends \yii\db\ActiveRecord
     }
 
     private function _insertAttributeValue($tableName,$attribute_id,$value){
-        Yii::$app->getDb()->createCommand()->insert( $tableName , [
-            'attribute_id' => $attribute_id,
-            'entity_id' => $this->entity_id,
-            'store_id' => $this->getStoreId(),
-            'value' => $value
-        ] )->execute();
+            Yii::$app->getDb()->createCommand()->insert($tableName, [
+                'attribute_id' => $attribute_id,
+                'entity_id' => $this->entity_id,
+                'store_id' => $this->getStoreId(),
+                'value' => $value
+            ])->execute();
     }
     private function _updateAttributeValue($code,$value){
-        $attribute = $this->getEavAttributes($code);
+        $attribute = $this->getEavAttributeByCode($code);
         $tableName = $this->getEntityTable().'_'.$attribute->backend_type;
 
         $attribute_id = $attribute->attribute_id;
@@ -339,21 +352,23 @@ class CatalogProductEntity extends \yii\db\ActiveRecord
     }
 
 
-    public function getEavAttributes ($code = null)
-    {
-        if(empty($this->_eav_attributes_object)){
-            $this->_initEavAttributes();
+
+    public function loadAllAttributes(){
+        $query  = EavAttribute::find()
+            ->leftJoin('eav_attribute_set','eav_attribute_set.entity_type_id = eav_attribute.entity_type_id')
+            ->where(['eav_attribute.entity_type_id'=>self::EAV_ENTITY_TYPE_ID]);
+        if($this->attribute_set_id){
+            $query->andWhere(['eav_attribute_set.attribute_set_id'=>$this->attribute_set_id]);
         }
-        if($code){
-            if(isset($this->_eav_attributes_object[$code])){
-                return $attribute = $this->_eav_attributes_object[$code];
-            }
+        $attributes = $query->all();
+        foreach ($attributes as $code => $attribute) {
+            $this->addEavAttribute($attribute);
         }
-        return $this->_eav_attributes_object[$code];
+        return $this;
     }
 
     public function getEntityTable(){
-        return $this->_entity_table;
+        return $this->_entityTable;
     }
 
     public function getStoreId(){
@@ -362,5 +377,42 @@ class CatalogProductEntity extends \yii\db\ActiveRecord
         }
         return Store::DEFAULT_STORE_ID;
     }
+
+
+
+    public function getEntityId(){
+        return $this->entity_id;
+    }
+
+    public function getEavAttributeByCode($code){
+        if(isset($this->_eavAttributes[$code])){
+            return $this->_eavAttributes[$code];
+        }
+        return $this->getEavAttribute($code);
+    }
+    /**
+     * @param EavAttribute $attribute
+     * @return $this
+     */
+    public function addEavAttribute($attribute){
+        $attribute->setEntity($this);
+        $attributeCode = $attribute->getAttributeCode();
+        $this->_eavAttributes[$attributeCode]= $attribute;
+        return $this;
+    }
+
+    public function getEavAttribute($code){
+        if(is_numeric($code)){
+            $attributeInstance = EavAttribute::findOne(['attribute_id'=>$code,'attribute_type_id'=>self::EAV_ENTITY_TYPE_ID]);
+        } else {
+            $attributeInstance = EavAttribute::findOne(['attribute_code'=>$code,'attribute_type_id'=>self::EAV_ENTITY_TYPE_ID]);
+        }
+        if(empty($attributeInstance)){
+            return null;
+        }
+        $this->addEavAttribute($attributeInstance);
+        return $attributeInstance;
+    }
+
 }
 

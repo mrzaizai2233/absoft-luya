@@ -20,7 +20,7 @@ class DefaultController extends \luya\web\Controller
 
 
         $attributes = [
-            'name'=>'Iphone 4s',
+            'name'=>'Iphone 4s 12312313123123',
             'description'=>'Điện thoại xin nhất Việt Nam',
             'short_description'=>'Điện thoại xin nhất Hải Phòng',
             'price'=>59,
@@ -28,9 +28,9 @@ class DefaultController extends \luya\web\Controller
         ];
         echo "<pre>";
 //        $product = new CatalogProductEntity();
-        $product = CatalogProductEntity::findOne(91);
-//        $product->sku = "iphone4s";
-//        $product->attribute_set_id = 4;
+        $product = CatalogProductEntity::findOne(95);
+        $product->sku = "iphone4s";
+        $product->attribute_set_id = 4;
         $product->setData($attributes);
         $product->save();
         die;
