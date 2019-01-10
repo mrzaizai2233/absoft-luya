@@ -28,17 +28,14 @@ use yii\db\Exception;
  */
 class CatalogProductEntity extends \yii\db\ActiveRecord
 {
-    const SKU_CODE = 'sku';
+
+    const DEFAULT_ATTRIBUTES = ['entity_id', 'sku', 'name', 'price', 'weight', 'status', 'visibility', 'attribute_set_id', 'type_id', 'created_at', 'updated_at'];
 
     const EAV_ENTITY_TYPE_ID = 4;
 
-    const DEFAULT_ATTRIBUTES = [ 'entity_id' , 'attribute_set_id' , 'type_id' , 'created_at' , 'updated_at' , 'sku' ];
+    const DEFAULT_ATTRIBUTE_SET = 1;
 
-    const DEFUALT_ATTRIBUTE_SET = 1;
-
-    private $_data = [];
-
-    private $_eav_attributes = [];
+    protected $_data = [];
 
     /**
      * Setter/Getter underscore transformation cache
@@ -46,7 +43,7 @@ class CatalogProductEntity extends \yii\db\ActiveRecord
      *
      */
 
-    private $_eavAttributes = [];
+    protected $_eavAttributes = [];
 
     /**
      * Entity attribute values per backend table to delete

@@ -17,8 +17,6 @@ class ProductController extends \luya\admin\base\Controller
 
     public function actionIndex(){
         $model = new CatalogProductEntity();
-        $eavAttribute = EavAttribute::findOne(73);
-        $eavAttribute->saveAttributeValue('Abc');
         return $this->render('index',compact('model'));
     }
 }

@@ -1,22 +1,23 @@
 <script>
-    zaa.bootstrap.register('MyController', ['$scope', '$http', function($scope, $http) {
+    zaa.bootstrap.register('IndexController', ['$scope', '$http', function($scope, $http) {
 
-        $scope.dataResponse;
-
+        $scope.products;
+        $http.get('admin/api-shop-product').then(function(response) {
+            $scope.products = response.data;
+        });
         $scope.click = function() {
-            $http.get('myadminmodule/finder/data').then(function(response) {
-                $scope.dataResponse = response.data;
+            $http.get('admin/api-shop-product').then(function(response) {
+                $scope.products = response.data;
             });
         };
 
     }]);
 </script>
-<div class="luya-content" ng-controller="MyController">
+<div class="luya-content" ng-controller="IndexController">
     <h1>My Custom View</h1>
+    <ul>
+        <li ng-repeat="product in products">{{product.sku}}</li>
+    </ul>
 
-    <button type="button" ng-click="click()" class="btn btn-primary">Click me</button>
 
-    <div ng-if="dataResponse">
-        The time is:
-    </div>
 </div>
