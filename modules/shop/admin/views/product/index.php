@@ -1,22 +1,32 @@
 <script>
-    zaa.bootstrap.register('MyController', ['$scope', '$http', function($scope, $http) {
+    zaa.bootstrap.register('ProductController', ['$scope', '$http', function($scope, $http) {
 
-        $scope.dataResponse;
+        $scope.products;
 
         $scope.click = function() {
-            $http.get('myadminmodule/finder/data').then(function(response) {
-                $scope.dataResponse = response.data;
+            $http.get('admin/api-shop-product').then(function(response) {
+                $scope.products = response.data;
+                console.log($scope.products)
             });
         };
 
     }]);
 </script>
-<div class="luya-content" ng-controller="MyController">
+<div class="luya-content" ng-controller="ProductController">
     <h1>My Custom View</h1>
 
     <button type="button" ng-click="click()" class="btn btn-primary">Click me</button>
 
-    <div ng-if="dataResponse">
-        The time is:
-    </div>
+    <table class="table table-hover">
+        <thead>
+        <tr>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="product in ProductController.products">
+            <td>{{product.sku}}</td>
+        </tr>
+        </tbody>
+    </table>
 </div>

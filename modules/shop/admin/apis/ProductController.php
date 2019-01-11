@@ -9,10 +9,12 @@
 namespace app\modules\shop\admin\apis;
 
 
+use app\modules\shop\models\CatalogProductEntity;
+
 class ProductController extends \luya\admin\base\RestController
 {
     public function actionIndex(){
-        return ['foo','bar'];
+        return CatalogProductEntity::find()->all();
     }
 
 }

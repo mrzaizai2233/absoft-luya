@@ -28,17 +28,40 @@ use yii\db\Exception;
  */
 class CatalogProductEntity extends \yii\db\ActiveRecord
 {
-    const SKU_CODE = 'sku';
+    /**#@+
+     * Constants defined for keys of  data array
+     */
+
+    const SKU = 'sku';
+
+    const NAME = 'name';
+
+    const PRICE = 'price';
+
+    const WEIGHT = 'weight';
+
+    const STATUS = 'status';
+
+    const VISIBILITY = 'visibility';
+
+    const ATTRIBUTE_SET_ID = 'attribute_set_id';
+
+    const TYPE_ID = 'type_id';
+
+    const CREATED_AT = 'created_at';
+
+    const UPDATED_AT = 'updated_at';
+    /**#@-*/
+
+    protected $_data = [];
 
     const EAV_ENTITY_TYPE_ID = 4;
 
-    const DEFAULT_ATTRIBUTES = [ 'entity_id' , 'attribute_set_id' , 'type_id' , 'created_at' , 'updated_at' , 'sku' ];
+    const DEFAULT_ATTRIBUTE_SET = 1;
 
-    const DEFUALT_ATTRIBUTE_SET = 1;
+    const DEFAULT_ATTRIBUTES = ['entity_id', 'sku', 'price', 'status', 'visibility', 'weight', 'attribute_set_id', 'type_id', 'created_at', 'updated_at'  ];
 
-    private $_data = [];
 
-    private $_eav_attributes = [];
 
     /**
      * Setter/Getter underscore transformation cache
