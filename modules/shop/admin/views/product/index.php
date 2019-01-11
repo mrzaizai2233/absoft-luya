@@ -1,15 +1,17 @@
 <script>
 
-    zaa.bootstrap.register('IndexController', ['$scope', '$http', function($scope, $http) {
+    zaa.bootstrap.register('IndexController', ['$scope', '$http','$location', function($scope, $http,$location) {
 
         $scope.products;
-        $http.get('admin/api-shop-product').then(function(response) {
-            $scope.products = response.data;
-        });
-        $scope.click = function() {
+
+        $scope.loadProducts = function () {
             $http.get('admin/api-shop-product').then(function(response) {
                 $scope.products = response.data;
             });
+        }
+        $scope.loadProducts()
+        $scope.click = function() {
+            $location.path('/shopadmin/product/create')
         };
 
     }]);
@@ -17,11 +19,7 @@
 
 <div class="luya-content" ng-controller="IndexController">
     <h1>My Custom View</h1>
-    <ul>
-        <li ng-repeat="product in products">{{product.sku}}</li>
-    </ul>
-
-
+    <a class="btn button-primary" ng-click="click()">Create</a>
     <table class="table table-hover">
         <thead>
         <tr>
@@ -29,10 +27,12 @@
         </tr>
         </thead>
         <tbody>
-        <tr ng-repeat="product in ProductController.products">
+        <tr ng-repeat="product in products">
             <td>{{product.sku}}</td>
         </tr>
         </tbody>
     </table>
 
 </div>
+
+

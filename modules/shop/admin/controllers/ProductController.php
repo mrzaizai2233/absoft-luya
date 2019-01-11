@@ -20,4 +20,10 @@ class ProductController extends \luya\admin\base\Controller
         $model = new CatalogProductEntity();
         return $this->render('index',compact('model'));
     }
+
+    public function actionCreate(){
+
+        $model = new CatalogProductEntity();
+        return $this->render('create',compact('model'));
+    }
 }
