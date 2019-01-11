@@ -62,14 +62,13 @@ class CatalogProductEntity extends \yii\db\ActiveRecord
     const DEFAULT_ATTRIBUTES = ['entity_id', 'sku', 'price', 'status', 'visibility', 'weight', 'attribute_set_id', 'type_id', 'created_at', 'updated_at'  ];
 
 
-
     /**
      * Setter/Getter underscore transformation cache
      *
      *
      */
 
-    private $_eavAttributes = [];
+    protected $_eavAttributes = [];
 
     /**
      * Entity attribute values per backend table to delete

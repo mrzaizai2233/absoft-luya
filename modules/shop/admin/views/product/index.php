@@ -1,21 +1,26 @@
 <script>
-    zaa.bootstrap.register('ProductController', ['$scope', '$http', function($scope, $http) {
+
+    zaa.bootstrap.register('IndexController', ['$scope', '$http', function($scope, $http) {
 
         $scope.products;
-
+        $http.get('admin/api-shop-product').then(function(response) {
+            $scope.products = response.data;
+        });
         $scope.click = function() {
             $http.get('admin/api-shop-product').then(function(response) {
                 $scope.products = response.data;
-                console.log($scope.products)
             });
         };
 
     }]);
 </script>
-<div class="luya-content" ng-controller="ProductController">
-    <h1>My Custom View</h1>
 
-    <button type="button" ng-click="click()" class="btn btn-primary">Click me</button>
+<div class="luya-content" ng-controller="IndexController">
+    <h1>My Custom View</h1>
+    <ul>
+        <li ng-repeat="product in products">{{product.sku}}</li>
+    </ul>
+
 
     <table class="table table-hover">
         <thead>
@@ -29,4 +34,5 @@
         </tr>
         </tbody>
     </table>
+
 </div>
