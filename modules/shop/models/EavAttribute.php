@@ -203,7 +203,7 @@ class EavAttribute extends \yii\db\ActiveRecord
             return null;
         }
 
-        $store_id = $object->store_id ? $object->store_id : Store::DEFAULT_STORE_ID;
+        $store_id = $object->getStoreId() ? $object->getStoreId() : Store::DEFAULT_STORE_ID;
         if ($store_id)
             $entityTable = $object->getEntityTable();
         $tableName = $entityTable . '_' . $this->getBackendType();
@@ -216,6 +216,14 @@ class EavAttribute extends \yii\db\ActiveRecord
             ->one();
     }
 
+    /**
+     * @param CatalogProductEntity $object
+     * @return array|bool|null
+     */
+    public function getValue($object= null){
+        $value = $this->getArrayValue($object);
+        return $value['value']? $value['value']:'';
+    }
 
     public function getOptions ()
     {

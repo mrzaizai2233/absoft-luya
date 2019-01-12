@@ -22,4 +22,38 @@ class ProductController extends \luya\admin\base\RestController
         return CatalogProductEntity::find()->limit($limit)->offset($offset)->all();
     }
 
+    public function actionCreate(){
+        $request = Yii::$app->getRequest();
+        if($request->isPost){
+            $requestData = $request->post();
+            $product = new CatalogProductEntity();
+            $product->attributes = $requestData;
+            $product->setData($requestData);
+            if(!$product->save()){
+                return $product->getErrors();
+            } else {
+                return $product;
+            }
+        } else {
+            return Yii::t('app','request not match');
+        }
+    }
+
+    public function actionUpdate($id){
+        $request = Yii::$app->getRequest();
+        if($request->isPost){
+            $requestData = $request->post();
+            $product = CatalogProductEntity::findOne($id);
+            $product->attributes = $requestData;
+            $product->setData($requestData);
+            if(!$product->save()){
+                return $product->getErrors();
+            } else {
+                return $product;
+            }
+        } else {
+            return Yii::t('app','request not match');
+        }
+    }
+
 }

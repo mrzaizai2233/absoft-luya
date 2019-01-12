@@ -22,8 +22,14 @@ class ProductController extends \luya\admin\base\Controller
     }
 
     public function actionCreate(){
-
         $model = new CatalogProductEntity();
         return $this->render('create',compact('model'));
+    }
+
+    public function actionUpdate(){
+        $product = CatalogProductEntity::findOne(105);
+        $product->setAttributeSetId($product->attribute_set_id);
+        $product->setTypeId($product->type_id);
+        return $this->render('update',compact('product'));
     }
 }

@@ -14,6 +14,7 @@ class Module extends \luya\admin\base\Module
 {
     public $apis = [
         'api-shop-product' => 'app\modules\shop\admin\apis\ProductController' ,
+        'api-shop-attribute' => 'app\modules\shop\admin\apis\EavAttributeController' ,
     ];
 
     public function getMenu ()
@@ -22,6 +23,7 @@ class Module extends \luya\admin\base\Module
             ->node('Shop', 'store_mall_directory')
             ->group('Catalog')
             ->itemRoute("Products", "shopadmin/product/index", "poll")
-            ->itemRoute('Products', 'shopadmin/product/create', 'library_books');
+            ->itemRoute('Create', 'shopadmin/product/create', 'library_books')
+            ->itemRoute('Update', 'shopadmin/product/update', 'library_books');
     }
 }
