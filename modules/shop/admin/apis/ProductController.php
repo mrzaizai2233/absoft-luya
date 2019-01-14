@@ -19,7 +19,12 @@ class ProductController extends \luya\admin\base\RestController
         $request = Yii::$app->getRequest();
         $offset = $request->get('offset') ? $request->get('offset') : 0;
         $limit = $request->get('limit') ? $request->get('limit') : 15;
-        return CatalogProductEntity::find()->limit($limit)->offset($offset)->all();
+        $results = CatalogProductEntity::find()->limit($limit)->offset($offset)->all();
+        $products = [];
+        foreach ($results as $result) {
+            $products[]=$result->getData();
+        }
+        return $products;
     }
 
     public function actionCreate(){
@@ -53,6 +58,15 @@ class ProductController extends \luya\admin\base\RestController
             }
         } else {
             return Yii::t('app','request not match');
+        }
+    }
+
+    public function actionDelete(){
+        $id = Yii::$app->getRequest()->post('id');
+        if($id){
+            return CatalogProductEntity::deleteAll(['entity_id'=>$id]);
+        } else {
+            return Yii::t('app','entity_id  missing');
         }
     }
 

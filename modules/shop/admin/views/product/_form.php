@@ -2,18 +2,18 @@
     <div class="form-group">
         <legend><?php echo Yii::t('app','Create Product') ?></legend>
     </div>
-    <!--                <input type="hidden"  ng-init="product.attribute_set_id=4">-->
+    <input type="hidden"  ng-init="product.attribute_set_id=4">
     <input type="hidden"  ng-init="product.type_id='simple'">
 
 
-    <div class="form-group">
-        <label for="attribute_set" class="col-sm-2 control-label">Attribute Set</label>
-        <div class="col-sm-10 col-md-10">
-            <select class="form-control" id="attribute_set" ng-model="product.attribute_set_id">
-                <option ng-repeat="attribute_set in attribute_sets" value="{{attribute_set.attribute_set_id}}">{{attribute_set.attribute_set_name}}</option>
-            </select>
-        </div>
-    </div>
+<!--    <div class="form-group">-->
+<!--        <label for="attribute_set" class="col-sm-2 control-label">Attribute Set</label>-->
+<!--        <div class="col-sm-10 col-md-10">-->
+<!--            <select class="form-control" id="attribute_set" ng-model="product.attribute_set_id">-->
+<!--                <option ng-repeat="attribute_set in attribute_sets" value="{{attribute_set.attribute_set_id}}">{{attribute_set.attribute_set_name}}</option>-->
+<!--            </select>-->
+<!--        </div>-->
+<!--    </div>-->
 
 
     <div class="form-group">

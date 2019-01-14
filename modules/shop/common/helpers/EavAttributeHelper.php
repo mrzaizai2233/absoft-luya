@@ -20,11 +20,11 @@ class EavAttributeHelper
 
     /**
      * @param $entityType
-     * @param object $object
+     * @param CatalogProductEntity  $object
      * @return array
      */
     public static function getEntityAttributes($entityType, $object = null){
-        $attribute_set_id = $object->attribute_set_id?$object->attribute_set_id:CatalogProductEntity::DEFAULT_ATTRIBUTE_SET;
+        $attribute_set_id = $object->attribute_set_id?$object->attribute_set_id:'';
         $query  = EavAttribute::find()
             ->leftJoin('eav_attribute_set','eav_attribute_set.entity_type_id = eav_attribute.entity_type_id')
             ->where(['eav_attribute.entity_type_id'=>$entityType]);

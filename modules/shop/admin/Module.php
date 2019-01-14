@@ -22,8 +22,6 @@ class Module extends \luya\admin\base\Module
         return (new \luya\admin\components\AdminMenuBuilder($this))
             ->node('Shop', 'store_mall_directory')
             ->group('Catalog')
-            ->itemRoute("Products", "shopadmin/product/index", "poll")
-            ->itemRoute('Create', 'shopadmin/product/create', 'library_books')
-            ->itemRoute('Update', 'shopadmin/product/update', 'library_books');
+            ->itemRoute("Products", "shopadmin/product/index", "poll");
     }
 }

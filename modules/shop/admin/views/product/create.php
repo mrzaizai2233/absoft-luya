@@ -1,5 +1,5 @@
 <script>
-    zaa.bootstrap.register('CreateController',['$scope','$rootScope','$http',function($scope,$rootScope,$http){
+    zaa.bootstrap.register('CreateController',['$scope','$rootScope','$http','$window',function($scope,$rootScope,$http,$window){
 
         $scope.product= {
 
@@ -12,7 +12,9 @@
         }
         $scope.getAttributeSets();
         $scope.submit = function(){
-            $http.post('admin/api-shop-product/create',$scope.product).then()
+            $http.post('admin/api-shop-product/create',$scope.product).then(function(){
+                $window.history.back();
+            })
         }
     }])
 </script>

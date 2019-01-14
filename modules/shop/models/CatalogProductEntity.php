@@ -94,6 +94,8 @@ class CatalogProductEntity extends \yii\db\ActiveRecord
      */
     protected static $_underscoreCache = [];
 
+    protected $_attributeToSelect=[];
+
     public function setData($key, $value=null){
         if ($key === (array)$key) {
             $this->_data = $key;
@@ -386,13 +388,20 @@ class CatalogProductEntity extends \yii\db\ActiveRecord
 
 
     public function loadAllAttributes($codes=null){
+
+        if($codes=='*'){
+            $attributes = EavAttributeHelper::getEntityAttributes(self::EAV_ENTITY_TYPE_ID,$this);
+            $this->_eavAttributes = $attributes;
+            return $this;
+        }
         $query  = EavAttribute::find()
             ->leftJoin('eav_attribute_set','eav_attribute_set.entity_type_id = eav_attribute.entity_type_id')
             ->where(['eav_attribute.entity_type_id'=>self::EAV_ENTITY_TYPE_ID]);
         if($this->attribute_set_id){
             $query->andWhere(['eav_attribute_set.attribute_set_id'=>$this->attribute_set_id]);
         }
-        if($codes){
+
+        if(is_array($codes)){
             $query->andWhere(['in','attribute_code',$codes]);
         }
         $attributes = $query->all();
@@ -450,13 +459,26 @@ class CatalogProductEntity extends \yii\db\ActiveRecord
         return $attributeInstance;
     }
 
+    public function setAttributeToSelect($selects=  null){
+        if(is_string($selects)){
+            $this->_attributeToSelect = explode(',',$selects);
+        } elseif($selects=='*'){
+            EavAttributeHelper::getEntityAttributes(self::EAV_ENTITY_TYPE_ID,$this);
+        } else {
+            $this->_attributeToSelect = $selects;
+        }
+        return $this;
+    }
 
+    public function getAttributeToSelect(){
+        return $this->_attributeToSelect;
+    }
     public function afterFind ()
     {
         $default_attribute_codes = self::DEFAULT_ATTRIBUTES;
-        $this->loadAllAttributes();
-
-        foreach ($default_attribute_codes as $default_attribute_code) {
+//        $attributeToSelect = $this->getAttributeToSelect();
+        $attribute_codes = array_merge($default_attribute_codes,['description','short_description']);
+        foreach ($attribute_codes as $default_attribute_code) {
             $attribute = $this->getEavAttributeByCode($default_attribute_code);
             if($attribute && $attribute->getBackendType() !=='static'){
                 $this->setData($attribute->getAttributeCode(),$attribute->getValue($this));
