@@ -27,6 +27,13 @@ class ProductController extends \luya\admin\base\RestController
         return $products;
     }
 
+    public function actionView($id){
+        $product = CatalogProductEntity::findOne($id);
+        $product->setAttributeSetId($product->attribute_set_id);
+        $product->setTypeId($product->type_id);
+        return $product->getData();
+    }
+
     public function actionCreate(){
         $request = Yii::$app->getRequest();
         if($request->isPost){
@@ -35,7 +42,7 @@ class ProductController extends \luya\admin\base\RestController
             $product->attributes = $requestData;
             $product->setData($requestData);
             if(!$product->save()){
-                return $product->getErrors();
+                return CatalogProductEntity::findOne($product->getEntityId());
             } else {
                 return $product;
             }
@@ -54,7 +61,7 @@ class ProductController extends \luya\admin\base\RestController
             if(!$product->save()){
                 return $product->getErrors();
             } else {
-                return $product;
+                return CatalogProductEntity::findOne($product->getEntityId())->getData();
             }
         } else {
             return Yii::t('app','request not match');

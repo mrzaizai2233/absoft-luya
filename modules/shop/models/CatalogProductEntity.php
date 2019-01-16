@@ -59,7 +59,7 @@ class CatalogProductEntity extends \yii\db\ActiveRecord
 
     const DEFAULT_ATTRIBUTE_SET = 1;
 
-    const DEFAULT_ATTRIBUTES = ['entity_id', 'name', 'sku', 'price', 'status', 'visibility', 'weight', 'attribute_set_id', 'type_id'];
+    const DEFAULT_ATTRIBUTES = ['entity_id', 'name', 'sku', 'price', 'status', 'visibility', 'weight', 'image', 'attribute_set_id', 'type_id'];
 
 
     /**
@@ -477,7 +477,7 @@ class CatalogProductEntity extends \yii\db\ActiveRecord
     {
         $default_attribute_codes = self::DEFAULT_ATTRIBUTES;
 //        $attributeToSelect = $this->getAttributeToSelect();
-        $attribute_codes = array_merge($default_attribute_codes,['description','short_description']);
+        $attribute_codes = array_merge($default_attribute_codes,['description','short_description'],$this->getAttributeToSelect());
         foreach ($attribute_codes as $default_attribute_code) {
             $attribute = $this->getEavAttributeByCode($default_attribute_code);
             if($attribute && $attribute->getBackendType() !=='static'){

@@ -1,12 +1,18 @@
-<?php
-$attribute_sets = \app\modules\shop\models\EavAttributeSet::find()->all();
-?>
+
 <script>
     zaa.bootstrap.register('CreateController',['$scope','$rootScope','$http','$window','$location', '$stateParams',function($scope,$rootScope,$http,$window,$location,$stateParams){
-        console.log($location.search())
-        $scope.product= <?= json_encode($product->getData()) ?>;
+        $scope.page_title = 'Update Product'
+        $scope.product= {};
+        (function () {
+            $http.get('admin/api-shop-product/view?id='+$stateParams.id).then(function(response){
+                $scope.product = response.data
+            })
+            $http.get('shopadmin/product/test').then(function(response){
+                $scope.product = response.data
+            })
+        })()
         $scope.submit = function(){
-            $http.post('admin/api-shop-product/update?id='+$scope.product.entity_id,$scope.product).then(function(){
+            $http.post('admin/api-shop-product/update?id='+$scope.product.entity_id,$scope.product).then(function(response){
                 $window.history.back();
             })
         }

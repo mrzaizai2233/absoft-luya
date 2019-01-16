@@ -2,6 +2,7 @@
 
 namespace app\modules\shop\admin;
 
+use Yii;
 /**
  * Shop Admin Module.
  *
@@ -16,6 +17,20 @@ class Module extends \luya\admin\base\Module
         'api-shop-product' => 'app\modules\shop\admin\apis\ProductController' ,
         'api-shop-attribute' => 'app\modules\shop\admin\apis\EavAttributeController' ,
     ];
+
+
+    public function init ()
+    {
+        \Yii::$container->set('app\modules\shop\models\Repositories\Product','app\modules\shop\models\Repositories\Product');
+        parent::init();
+    }
+
+    public function getAdminAssets()
+    {
+        return [
+            'app\modules\shop\admin\assets\Main'
+        ];
+    }
 
     public function getMenu ()
     {

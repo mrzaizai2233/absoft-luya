@@ -3,9 +3,9 @@ use  luya\admin\ngrest\base\ActiveWindow;
 ?>
 <script>
 
-    zaa.bootstrap.register('IndexController', ['$scope', '$http','$location','$state', function($scope, $http,$location,$state) {
-        console.log($state)
-        $scope.products;
+    zaa.bootstrap.register('IndexController', ['$scope', '$http','$location','$state' ,function($scope, $http,$location,$state) {
+
+        $scope.products=[];
 
         $scope.loadProducts = function () {
             $http.get('admin/api-shop-product').then(function(response) {
@@ -13,7 +13,10 @@ use  luya\admin\ngrest\base\ActiveWindow;
             });
         }
         $scope.loadProducts()
+        $scope.toUpdate=function(id){
+            $state.go('default.update',{actionId:'update?id='+id})
 
+        }
         $scope.deleteProduct=function(id){
             $http.post('admin/api-shop-product/delete',{id:id}).then(function(response){
                 $scope.products = $scope.products.filter(function(product){
@@ -29,7 +32,7 @@ use  luya\admin\ngrest\base\ActiveWindow;
 
 <div class="luya-content" ng-controller="IndexController">
     <h1>Products</h1>
-    <a class="btn button-primary" ui-sref="default.route({moduleRouteId:'shopadmin',controllerId:'product',actionId:'create'})">Create</a>
+    <a class="btn button-primary" ui-sref="default.create">Create</a>
     <table class="table table-hover">
         <thead>
         <tr>
@@ -45,15 +48,13 @@ use  luya\admin\ngrest\base\ActiveWindow;
             <td>{{product.name}}</td>
             <td>{{product.sku}}</td>
             <td>
-                <a class="btn button-success" ui-sref="default.route.detail({moduleRouteId:'shopadmin',controllerId:'product',actionId:'update',id:product.entity_id})">Edit</a>
-<!--                <button type="button" class="btn btn-danger" ng-click="deleteProduct(product.entity_id)">Delete</button>-->
-                <button class="btn btn-danger" ng-click="$state.go('default.route', {moduleRouteId:'shopadmin',controllerId:'product',actionId:'update'});">Custom</button>
-                    
+                <a class="btn button-success" ui-sref="default.edit({id:product.entity_id})" >Edit</a>
+                <a class="btn btn-danger" ng-click="toUpdate(product.entity_id)">Custom</a>
+
             </td>
         </tr>
         </tbody>
     </table>
-
 </div>
 
 

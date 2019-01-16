@@ -1,6 +1,6 @@
 <script>
     zaa.bootstrap.register('CreateController',['$scope','$rootScope','$http','$window',function($scope,$rootScope,$http,$window){
-
+        $scope.page_title='Create Product'
         $scope.product= {
 
         }

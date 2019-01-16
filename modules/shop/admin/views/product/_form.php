@@ -1,6 +1,12 @@
+<?php
+use luya\admin\helpers\Angular;
+?>
 <form ng-submit="submit()" class="form-horizontal" role="form">
     <div class="form-group">
-        <legend><?php echo Yii::t('app','Create Product') ?></legend>
+        <legend>{{page_title}}</legend>
+        <pre>
+            {{product}}
+        </pre>
     </div>
     <input type="hidden"  ng-init="product.attribute_set_id=4">
     <input type="hidden"  ng-init="product.type_id='simple'">
@@ -78,6 +84,7 @@
             <textarea type="text" class="form-control" id="description" ng-model="product.description" placeholder=""></textarea>
         </div>
     </div>
+    <?= Angular::fileUpload('product.image','Images') ?>
     <div class="form-group">
         <div class="col-sm-10 col-sm-offset-2">
             <button class="btn btn-primary">Save</button>
