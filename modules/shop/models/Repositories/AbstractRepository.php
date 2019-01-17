@@ -39,6 +39,13 @@ abstract class AbstractRepository
      * @var array
      */
     protected $_attributes = [];
+
+    /**
+     * The attribute to select
+     *
+     * @var array
+     */
+    protected $_staticAttributes = [];
     /**
      * Create a new repository instance
      *
@@ -177,22 +184,15 @@ abstract class AbstractRepository
 
         $selectSql = null;
         $joinSql = null;
+        $whereSql = null;
         $rawSql = "SELECT e.* , {{SELECT}} FROM catalog_product_entity e {{JOIN}}";
-        $i=0;
         foreach ($attributes as $attribute) {
-            if($i== count($attributes)-1){
-                $selectSql .= " $attribute.value as $attribute ";
-            } else {
-                $selectSql .= " $attribute.value as $attribute , ";
-            }
-
-            $joinSql .= $this->buildJoinQuery($attribute);
-
-            $i++;
+            $selectSql []= " $attribute.value as $attribute ";
+            $joinSql []= $this->buildJoinQuery($attribute);
         }
 
-        $rawSql = str_replace('{{SELECT}}',$selectSql,$rawSql);
-        $rawSql = str_replace('{{JOIN}}',$joinSql,$rawSql);
+        $rawSql = str_replace('{{SELECT}}',implode(', ',$selectSql),$rawSql);
+        $rawSql = str_replace('{{JOIN}}',implode(' ',$joinSql),$rawSql);
 
 
         $rawFilterSql = "SELECT * FROM ($rawSql) main {{WHERE}}";
@@ -213,7 +213,10 @@ abstract class AbstractRepository
         die;
     }
     public function buildJoinQuery($attribute){
-        $attributeInstance = $this->getAttribute($attribute);
+        $attributeInstance = $this->loadAttribute($attribute);
+        if($attributeInstance->getBackendType() =='static'){
+            return '';
+        }
         $attributeCode = $attributeInstance->getAttributeCode();
         $attributeValueTable = 'catalog_product_entity_'.$attributeInstance->getBackendType();
         $joinSql = "
@@ -232,21 +235,41 @@ abstract class AbstractRepository
         return $joinSql;
     }
 
+    public function builSelectQuery($attribute){
+        $attributeInstance = $this->getAttribute($attribute);
+        if($attributeInstance->getBackendType() == 'static'){
+            return " $attribute ";
+        } else {
+            return " $attribute.value as $attribute ";
+        }
+    }
     public function buildWhereQuery($attribute,$condition = '=',$value){
-        if ($condition == 'like') {
-            $whereSql = " $attribute $condition '%$value%' ";
-        } elseif ($condition == 'in') {
+        $attribute = $this->getAttribute($attribute);
+        if ($condition == 'in') {
             $whereSql = " $attribute $condition in ($value) ";
         } else {
             $whereSql = " $attribute $condition '$value' ";
         }
         return $whereSql;
     }
+
     /**
      * @param string|integer|EavAttribute $attribute
      * @return EavAttribute
      */
     public function getAttribute($attribute){
+        if(isset($this->_attributes[$attribute])){
+            return $this->_attributes[$attribute];
+        } else {
+            return $this->loadAttribute($attribute);
+        }
+    }
+    /**
+     * @param string|integer|EavAttribute $attribute
+     * @return EavAttribute
+     */
+    public function loadAttribute($attribute){
+
         $attributeInstance = null;
         if($attribute instanceof EavAttribute){
             $attributeInstance =  $attribute;

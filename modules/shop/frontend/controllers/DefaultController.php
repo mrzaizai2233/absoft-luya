@@ -29,7 +29,7 @@ class DefaultController extends \luya\web\Controller
         $this->_productRepository
 
             ->addAttributeToSelect('name,price,short_description')
-            ->addFilterAttribute('name','=','Iphone X','AND')
+            ->addFilterAttribute('entity_id','=','20')
             ->query();
 
 //        $this->_productRepository->runQuery();
