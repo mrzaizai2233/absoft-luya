@@ -27,8 +27,8 @@ class DefaultController extends \luya\web\Controller
 
     public function actionIndex(){
         $this->_productRepository
-            ->addAttributeToSelect('name')
-            ->addFilterAttribute('name',['type'=>'=','value'=>'Iphone X'])
+            ->addFilterAttribute('name',['type'=>'=','value'=>'Iphone 4s'])
+            ->addFilterAttribute('visibility',['type'=>'=','value'=>'1'])
             ->runQuery();
 
         $this->_productRepository->runQuery();

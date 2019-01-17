@@ -107,6 +107,7 @@ abstract class AbstractRepository
         $query = new Query();
         $query->from($entity_table);
         $attribute_codes = array_merge_recursive($this->getAttributeToSelect(),array_keys($this->getFilterAttribute()));
+        $i = 0;
 
         foreach ($attribute_codes as $attribute_code) {
             $attributeInstance = EavAttribute::findOne(['attribute_code'=>$attribute_code]);
@@ -120,9 +121,10 @@ abstract class AbstractRepository
             if(!isset($this->_joinTables[$joinTable])){
 
                 $query->join('left join',$joinTable, 'catalog_product_entity.entity_id = '.$joinTable.'.entity_id')
-                    ->join('inner join','eav_attribute', 'eav_attribute.attribute_id = '.$joinTable.'.attribute_id');
+                    ->join('inner join','eav_attribute'.' as a'.$i, 'a'.$i.'.attribute_id = '.$joinTable.'.attribute_id');
                 $this->_joinTables[$joinTable] = $joinTable;
             }
+            $i++;
         }
         $rawSql = $query->createCommand()->rawSql ;
         $i = 0;
@@ -143,11 +145,10 @@ abstract class AbstractRepository
                     eav_attribute LEFT JOIN $value_table ON eav_attribute.attribute_id = $value_table.attribute_id WHERE attribute_code = '$code' and value {$value['type']} '{$value['value']}'
                 ) ";
             }
+            $i++;
         }
-        echo($rawSql);
-        die;
-
-        $models =  $query->createCommand($rawSql)->queryAll();
+        echo $rawSql.'group by attribute_code,catalog_product_entity.entity_id';
+        $models =  \Yii::$app->getDb()->createCommand($rawSql)->queryAll();
         $productCollection = [];
 
         var_dump($models);
