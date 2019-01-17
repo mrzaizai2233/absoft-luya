@@ -33,6 +33,11 @@ abstract class AbstractRepository
      */
     protected $_filterAttributes = [];
 
+    /**
+     * The attribute to select
+     *
+     * @var array
+     */
     protected $_attributes = [];
     /**
      * Create a new repository instance
@@ -55,7 +60,15 @@ abstract class AbstractRepository
     }
 
     public function addAttributeToSelect($attribute){
-        $this->_selectAttributes[]=$attribute;
+        if(strpos($attribute,',')!==false){
+            $this->_selectAttributes = explode(',',$attribute);
+        } elseif(strpos($attribute,',')===false) {
+            $this->_selectAttributes[] = $attribute;
+        } elseif (is_array($attribute)){
+            $this->_selectAttributes = $attribute;
+        } else {
+            $this->_selectAttributes = func_get_args();
+        }
         return $this;
     }
 
@@ -64,10 +77,12 @@ abstract class AbstractRepository
     }
 
 
-    public function addFilterAttribute($attribute,$value){
-        $this->_filterAttributes[$attribute]=$value;
+    public function addFilterAttribute($attribute,$condition,$value,$type= 'and'){
+        if(array_search($attribute,$this->getAttributeToSelect())){
+            $this->addAttributeToSelect($attribute);
+        }
+        $this->_filterAttributes[]=[$attribute,$condition,$value,$type];
         return $this;
-
     }
 
     public function getFilterAttribute(){
@@ -156,7 +171,101 @@ abstract class AbstractRepository
         return $models;
     }
 
-    public function builQueryConddition($attribute_code,$value,$type = ' = ',$value_table){
+    public function query(){
+        $attributes = $this->getAttributeToSelect();
+        $filterAttributes = $this->getFilterAttribute();
 
+        $selectSql = null;
+        $joinSql = null;
+        $rawSql = "SELECT e.* , {{SELECT}} FROM catalog_product_entity e {{JOIN}}";
+        $i=0;
+        foreach ($attributes as $attribute) {
+            if($i== count($attributes)-1){
+                $selectSql .= " $attribute.value as $attribute ";
+            } else {
+                $selectSql .= " $attribute.value as $attribute , ";
+            }
+
+            $joinSql .= $this->buildJoinQuery($attribute);
+
+            $i++;
+        }
+
+        $rawSql = str_replace('{{SELECT}}',$selectSql,$rawSql);
+        $rawSql = str_replace('{{JOIN}}',$joinSql,$rawSql);
+
+
+        $rawFilterSql = "SELECT * FROM ($rawSql) main {{WHERE}}";
+        $filterSql = "";
+        foreach ($filterAttributes as $index => $filterAttribute) {
+            if($index==0){
+                $filterSql .= " WHERE ". $this->buildWhereQuery($filterAttribute[0],$filterAttribute[1],$filterAttribute[2]);
+            } else {
+                $filterSql .= " ".$filterAttribute[3]." ". $this->buildWhereQuery($filterAttribute[0],$filterAttribute[1],$filterAttribute[2]);
+            }
+        }
+
+        $rawFilterSql = str_replace('{{WHERE}}',$filterSql,$rawFilterSql);
+
+        $result = \yii::$app->getDb()->createCommand($rawFilterSql)->queryAll();
+
+        var_dump($result);
+        die;
+    }
+    public function buildJoinQuery($attribute){
+        $attributeInstance = $this->getAttribute($attribute);
+        $attributeCode = $attributeInstance->getAttributeCode();
+        $attributeValueTable = 'catalog_product_entity_'.$attributeInstance->getBackendType();
+        $joinSql = "
+            LEFT JOIN 
+                $attributeValueTable $attributeCode 
+                ON e.entity_id = $attributeCode.entity_id
+            AND $attributeCode.attribute_id =
+            (
+               SELECT attribute_id
+               FROM eav_attribute
+               WHERE attribute_code = '$attributeCode' AND entity_type_id = (SELECT entity_type_id
+               FROM eav_entity_type
+               WHERE entity_type_code = 'catalog_product')
+            )
+        ";
+        return $joinSql;
+    }
+
+    public function buildWhereQuery($attribute,$condition = '=',$value){
+        if ($condition == 'like') {
+            $whereSql = " $attribute $condition '%$value%' ";
+        } elseif ($condition == 'in') {
+            $whereSql = " $attribute $condition in ($value) ";
+        } else {
+            $whereSql = " $attribute $condition '$value' ";
+        }
+        return $whereSql;
+    }
+    /**
+     * @param string|integer|EavAttribute $attribute
+     * @return EavAttribute
+     */
+    public function getAttribute($attribute){
+        $attributeInstance = null;
+        if($attribute instanceof EavAttribute){
+            $attributeInstance =  $attribute;
+        } elseif(is_string($attribute)) {
+            $attributeInstance = EavAttribute::findOne(['attribute_code'=>$attribute]);
+        } else {
+            $attributeInstance = EavAttribute::findOne(['attribute_id'=>$attribute]);
+        }
+        $this->addAttribute($attributeInstance);
+        return $attributeInstance;
+    }
+
+    /**
+     * @param EavAttribute $attribute
+     * @return $this
+     */
+    public function addAttribute($attribute){
+        $attribute_code = $attribute->getAttributeCode();
+        $this->_attributes[$attribute_code]= $attribute;
+        return $this;
     }
 }
