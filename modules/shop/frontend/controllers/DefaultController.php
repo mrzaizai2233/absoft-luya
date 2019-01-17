@@ -27,11 +27,11 @@ class DefaultController extends \luya\web\Controller
 
     public function actionIndex(){
         $this->_productRepository
-            ->addAttributeToSelect('name')
-            ->addFilterAttribute('name',['type'=>'=','value'=>'Iphone X'])
-            ->runQuery();
+            ->addAttributeToSelect('name,price,short_description')
+            ->addFilterAttribute('name','=','Iphone X','AND')
+            ->query();
 
-        $this->_productRepository->runQuery();
+//        $this->_productRepository->runQuery();
         die;
 
 
