@@ -94,7 +94,6 @@ class CatalogProductEntity extends \yii\db\ActiveRecord
      */
     protected static $_underscoreCache = [];
 
-    protected $_attributeToSelect=[];
 
     public function setData($key, $value=null){
         if ($key === (array)$key) {
@@ -257,6 +256,10 @@ class CatalogProductEntity extends \yii\db\ActiveRecord
         ];
     }
 
+    public function events(){
+
+    }
+
     /**
      * {@inheritdoc}
      */
@@ -330,21 +333,42 @@ class CatalogProductEntity extends \yii\db\ActiveRecord
     }
 
     private function _preSaveData(){
-        $datas = $this->getData();
-        foreach ($datas as $code => $data) {
+        $data = $this->getData();
+        foreach ($data as $code => $value) {
             $attribute = $this->getEavAttributeByCode($code);
-            if(!$attribute ||$attribute->getBackendType()=='static'){
+            if($attribute && $attribute->getBackendType() !== 'static'){
+                $this->setAttributeValuesToSave($this->getEntityTable().'_'.$attribute->getBackendType(),[
+                    'attribute_id'=>$attribute->getAttributeId(),
+                    'store_id'=>$this->getStoreId(),
+                    'entity_id'=>$this->getEntityId(),
+                    'value'=>$value
+                ]);
+            } else {
                 $this->unsetData($code);
             }
         }
     }
+
+    public function setAttributeValuesToSave($tableName,$values){
+        $this->_attributeValuesToSave[$tableName][] = $values;
+    }
+
+    public function getAttributeValuesToSave(){
+        return $this->_attributeValuesToSave;
+    }
     public function saveEavAttributes(){
 
-        $datas = $this->getData();
-        foreach ($datas as $code => $value) {
-            $attribute = $this->getEavAttributeByCode($code);
-            $tableName = $this->getEntityTable().'_'.$attribute->backend_type;
-            $this->_insertAttributeValue($tableName,$attribute->attribute_id,$value);
+        $attributeValuesToSave = $this->getAttributeValuesToSave();
+
+        $db = static::getDb();
+        $transaction = $db->beginTransaction();
+        try {
+            foreach ($attributeValuesToSave as $table => $value) {
+                $db->createCommand()->batchInsert($table,['attribute_id','store_id','entity_id','value'],$value)->execute();
+            }
+            $transaction->commit();
+        } catch (Exception $exception){
+            $transaction->rollBack();
         }
     }
 
@@ -356,7 +380,7 @@ class CatalogProductEntity extends \yii\db\ActiveRecord
     }
 
     private function _insertAttributeValue($tableName,$attribute_id,$value){
-            Yii::$app->getDb()->createCommand()->insert($tableName, [
+            static::getDb()->createCommand()->insert($tableName, [
                 'attribute_id' => $attribute_id,
                 'entity_id' => $this->entity_id,
                 'store_id' => $this->getStoreId(),
@@ -376,7 +400,7 @@ class CatalogProductEntity extends \yii\db\ActiveRecord
                 'store_id' => $this->getStoreId()
             ])->one();
         if($result){
-            Yii::$app->getDb()->createCommand()->update($tableName,['value'=>$value],[
+            static::getDb()->createCommand()->update($tableName,['value'=>$value],[
                 'entity_id'=>$this->entity_id,
                 'attribute_id'=>$attribute_id
             ])->execute();
@@ -459,25 +483,11 @@ class CatalogProductEntity extends \yii\db\ActiveRecord
         return $attributeInstance;
     }
 
-    public function setAttributeToSelect($selects=  null){
-        if(is_string($selects)){
-            $this->_attributeToSelect = explode(',',$selects);
-        } elseif($selects=='*'){
-            EavAttributeHelper::getEntityAttributes(self::EAV_ENTITY_TYPE_ID,$this);
-        } else {
-            $this->_attributeToSelect = $selects;
-        }
-        return $this;
-    }
-
-    public function getAttributeToSelect(){
-        return $this->_attributeToSelect;
-    }
     public function afterFind ()
     {
         $default_attribute_codes = self::DEFAULT_ATTRIBUTES;
 //        $attributeToSelect = $this->getAttributeToSelect();
-        $attribute_codes = array_merge($default_attribute_codes,['description','short_description'],$this->getAttributeToSelect());
+        $attribute_codes = array_merge($default_attribute_codes,['description','short_description']);
         foreach ($attribute_codes as $default_attribute_code) {
             $attribute = $this->getEavAttributeByCode($default_attribute_code);
             if($attribute && $attribute->getBackendType() !=='static'){

@@ -13,7 +13,7 @@
         $scope.getAttributeSets();
         $scope.submit = function(){
             $http.post('admin/api-shop-product/create',$scope.product).then(function(){
-                $window.history.back();
+//                $window.history.back();
             })
         }
     }])

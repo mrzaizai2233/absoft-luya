@@ -12,6 +12,9 @@ abstract class AbstractRepository
 
     protected $_joinTables = [];
 
+    protected $_selectQueries = [];
+
+    protected $_query;
     /**
      * The model to execute queries on
      *
@@ -117,106 +120,67 @@ abstract class AbstractRepository
         \Yii::$app->response->format = 'xml';
     }
 
-    /**
-     * Set up pagination and data Model
-     *
-     *
-     * @return array
-     */
-    public function runQuery()
-    {
-        $entity_table = 'catalog_product_entity';
-        $query = new Query();
-        $query->from($entity_table);
-        $attribute_codes = array_merge_recursive($this->getAttributeToSelect(),array_keys($this->getFilterAttribute()));
-        $i = 0;
 
-        foreach ($attribute_codes as $attribute_code) {
-            $attributeInstance = EavAttribute::findOne(['attribute_code'=>$attribute_code]);
-            $this->_attributes[$attributeInstance->getAttributeCode()]= $attributeInstance;
-            if($attributeInstance->getBackendType()==='static'){
-                continue;
-            }
-            $joinTable = $entity_table.'_'.$attributeInstance->getBackendType();
-
-
-            if(!isset($this->_joinTables[$joinTable])){
-
-                $query->join('left join',$joinTable, 'catalog_product_entity.entity_id = '.$joinTable.'.entity_id')
-                    ->join('inner join','eav_attribute'.' as a'.$i, 'a'.$i.'.attribute_id = '.$joinTable.'.attribute_id');
-                $this->_joinTables[$joinTable] = $joinTable;
-            }
-            $i++;
-        }
-        $rawSql = $query->createCommand()->rawSql ;
-        $i = 0;
-        foreach ($this->_filterAttributes as $code => $value) {
-            $value_table = $entity_table.'_'.$this->_attributes[$code]->getBackendType();
-            if($i==0){
-                $rawSql .= " where catalog_product_entity.entity_id IN 
-                (
-                    SELECT entity_id 
-                        FROM 
-                    eav_attribute LEFT JOIN $value_table ON eav_attribute.attribute_id = $value_table.attribute_id WHERE attribute_code = '$code' and value {$value['type']} '{$value['value']}'
-                ) ";
-            } else {
-                $rawSql .= " and catalog_product_entity.entity_id IN 
-                (
-                    SELECT entity_id 
-                        FROM 
-                    eav_attribute LEFT JOIN $value_table ON eav_attribute.attribute_id = $value_table.attribute_id WHERE attribute_code = '$code' and value {$value['type']} '{$value['value']}'
-                ) ";
-            }
-            $i++;
-        }
-        echo $rawSql.'group by attribute_code,catalog_product_entity.entity_id';
-        $models =  \Yii::$app->getDb()->createCommand($rawSql)->queryAll();
-        $productCollection = [];
-
-        var_dump($models);
-        die;
-        return $models;
+    public function setQuery($rawSql){
+        $this->_query = $rawSql;
+    }
+    public function getQuery(){
+        return $this->_query;
     }
 
-    public function query(){
+    private function _query(){
         $attributes = $this->getAttributeToSelect();
         $filterAttributes = $this->getFilterAttribute();
 
-        $selectSql = null;
-        $joinSql = null;
         $whereSql = null;
         $rawSql = "SELECT e.* , {{SELECT}} FROM catalog_product_entity e {{JOIN}}";
         foreach ($attributes as $attribute) {
-            $selectSql []= " $attribute.value as $attribute ";
-            $joinSql []= $this->buildJoinQuery($attribute);
+            $this->_buildSelectQuery($attribute);
         }
 
-        $rawSql = str_replace('{{SELECT}}',implode(', ',$selectSql),$rawSql);
-        $rawSql = str_replace('{{JOIN}}',implode(' ',$joinSql),$rawSql);
+        $rawSql = str_replace('{{SELECT}}',implode(', ',$this->_selectQueries),$rawSql);
+        $rawSql = str_replace('{{JOIN}}',implode(' ',$this->_joinTables),$rawSql);
 
-
-        $rawFilterSql = "SELECT * FROM ($rawSql) main {{WHERE}}";
+        $rawSql = "SELECT * FROM ($rawSql) main {{WHERE}}";
         $filterSql = "";
         foreach ($filterAttributes as $index => $filterAttribute) {
             if($index==0){
-                $filterSql .= " WHERE ". $this->buildWhereQuery($filterAttribute[0],$filterAttribute[1],$filterAttribute[2]);
+                $filterSql .= " WHERE ". $this->_buildWhereQuery($filterAttribute[0],$filterAttribute[1],$filterAttribute[2]);
             } else {
-                $filterSql .= " ".$filterAttribute[3]." ". $this->buildWhereQuery($filterAttribute[0],$filterAttribute[1],$filterAttribute[2]);
+                $filterSql .= " ".$filterAttribute[3]." ". $this->_buildWhereQuery($filterAttribute[0],$filterAttribute[1],$filterAttribute[2]);
             }
         }
 
-        $rawFilterSql = str_replace('{{WHERE}}',$filterSql,$rawFilterSql);
-
-        $result = \yii::$app->getDb()->createCommand($rawFilterSql)->queryAll();
-
-        var_dump($result);
-        die;
+        $rawSql = str_replace('{{WHERE}}',$filterSql,$rawSql);
+        $this->setQuery($rawSql) ;
     }
-    public function buildJoinQuery($attribute){
-        $attributeInstance = $this->loadAttribute($attribute);
-        if($attributeInstance->getBackendType() =='static'){
-            return '';
+
+    public function load($id){
+        return $this->addFilterAttribute('entity_id','=',$id)->one();
+    }
+
+    public function one(){
+        $this->_query();
+        $data = \yii::$app->getDb()->createCommand($this->getQuery())->queryOne();
+        $this->model->attributes = $data;
+        $this->model->setData($data);
+        return $this->model;
+    }
+
+    public function all(){
+        $this->_query();
+        $datas = \yii::$app->getDb()->createCommand($this->getQuery())->queryAll();
+        $models = [];
+        foreach ($datas as $data) {
+            $model = $this->getNew();
+            $model->attributes = $data;
+            $model->setData($data);
+            $models[] = $model;
         }
+        return $models;
+    }
+    private function _buildJoinQuery($attribute){
+        $attributeInstance = $this->getAttribute($attribute);
         $attributeCode = $attributeInstance->getAttributeCode();
         $attributeValueTable = 'catalog_product_entity_'.$attributeInstance->getBackendType();
         $joinSql = "
@@ -225,26 +189,33 @@ abstract class AbstractRepository
                 ON e.entity_id = $attributeCode.entity_id
             AND $attributeCode.attribute_id =
             (
-               SELECT attribute_id
-               FROM eav_attribute
-               WHERE attribute_code = '$attributeCode' AND entity_type_id = (SELECT entity_type_id
-               FROM eav_entity_type
-               WHERE entity_type_code = 'catalog_product')
+               SELECT 
+                    attribute_id
+               FROM 
+                    eav_attribute
+               WHERE 
+                    attribute_code = '$attributeCode' AND entity_type_id = 4
             )
         ";
-        return $joinSql;
+        return $this->_joinTables[$attributeCode] = $joinSql;
     }
 
-    public function builSelectQuery($attribute){
+    private function _buildSelectQuery($attribute){
         $attributeInstance = $this->getAttribute($attribute);
+        if(!$attributeInstance){
+            return null;
+        }
+        $attributeCode = $attributeInstance->getAttributeCode();
         if($attributeInstance->getBackendType() == 'static'){
-            return " $attribute ";
+            $this->_selectQueries[]= " $attributeCode ";
         } else {
-            return " $attribute.value as $attribute ";
+            $this->_selectQueries[]= " $attributeCode.value as $attributeCode ";
+            $this->_buildJoinQuery($attributeInstance);
+
         }
     }
-    public function buildWhereQuery($attribute,$condition = '=',$value){
-        $attribute = $this->getAttribute($attribute);
+
+    private function _buildWhereQuery($attribute,$condition = '=',$value){
         if ($condition == 'in') {
             $whereSql = " $attribute $condition in ($value) ";
         } else {
@@ -258,7 +229,10 @@ abstract class AbstractRepository
      * @return EavAttribute
      */
     public function getAttribute($attribute){
-        if(isset($this->_attributes[$attribute])){
+        if($attribute instanceof EavAttribute){
+          $this->addAttribute($attribute);
+          return $attribute;
+        } elseif(isset($this->_attributes[$attribute])){
             return $this->_attributes[$attribute];
         } else {
             return $this->loadAttribute($attribute);
@@ -278,7 +252,9 @@ abstract class AbstractRepository
         } else {
             $attributeInstance = EavAttribute::findOne(['attribute_id'=>$attribute]);
         }
-        $this->addAttribute($attributeInstance);
+        if($attributeInstance){
+            $this->addAttribute($attributeInstance);
+        }
         return $attributeInstance;
     }
 
