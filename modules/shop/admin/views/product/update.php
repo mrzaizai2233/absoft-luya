@@ -7,9 +7,6 @@
             $http.get('admin/api-shop-product/view?id='+$stateParams.id).then(function(response){
                 $scope.product = response.data
             })
-            $http.get('shopadmin/product/test').then(function(response){
-                $scope.product = response.data
-            })
         })()
         $scope.submit = function(){
             $http.post('admin/api-shop-product/update?id='+$scope.product.entity_id,$scope.product).then(function(response){

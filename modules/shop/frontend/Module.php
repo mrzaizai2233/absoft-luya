@@ -1,7 +1,6 @@
 <?php
 
 namespace app\modules\shop\frontend;
-
 /**
  * Shop Admin Module.
  *
@@ -12,5 +11,9 @@ namespace app\modules\shop\frontend;
  */
 class Module extends \luya\base\Module
 {
-
+    public function init ()
+    {
+        \Yii::$container->set('app\modules\shop\models\Repositories\Product','app\modules\shop\models\Repositories\Product');
+        parent::init();
+    }
 }

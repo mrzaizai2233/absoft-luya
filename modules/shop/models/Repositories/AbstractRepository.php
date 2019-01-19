@@ -9,11 +9,23 @@ use yii\db\Query;
 
 abstract class AbstractRepository
 {
-
+    /**
+     * The model to execute queries on
+     *
+     * @var array
+     */
     protected $_joinTables = [];
-
+    /**
+     * The model to execute queries on
+     *
+     * @var array
+     */
     protected $_selectQueries = [];
-
+    /**
+     * The model to execute queries on
+     *
+     * @var string
+     */
     protected $_query;
     /**
      * The model to execute queries on
@@ -127,13 +139,21 @@ abstract class AbstractRepository
     public function getQuery(){
         return $this->_query;
     }
-
+    private function _prossAttributes(){
+        $attributes = array_merge($this->getAttributeToSelect(),$this->model->getDefaultAttributes());
+        $uniqueAttributes = [];
+        foreach ($attributes as $attribute) {
+            $uniqueAttributes[$attribute]= $attribute;
+        }
+        return $uniqueAttributes;
+    }
     private function _query(){
-        $attributes = $this->getAttributeToSelect();
+        $attributes = $this->_prossAttributes();
+
         $filterAttributes = $this->getFilterAttribute();
 
         $whereSql = null;
-        $rawSql = "SELECT e.* , {{SELECT}} FROM catalog_product_entity e {{JOIN}}";
+        $rawSql = "SELECT  {{SELECT}} FROM catalog_product_entity e {{JOIN}}";
         foreach ($attributes as $attribute) {
             $this->_buildSelectQuery($attribute);
         }
@@ -160,6 +180,7 @@ abstract class AbstractRepository
     }
 
     public function one(){
+
         $this->_query();
         $data = \yii::$app->getDb()->createCommand($this->getQuery())->queryOne();
         $this->model->attributes = $data;
@@ -173,6 +194,7 @@ abstract class AbstractRepository
         $models = [];
         foreach ($datas as $data) {
             $model = $this->getNew();
+            $model->entity_id = $data['entity_id'];
             $model->attributes = $data;
             $model->setData($data);
             $models[] = $model;
@@ -202,17 +224,14 @@ abstract class AbstractRepository
 
     private function _buildSelectQuery($attribute){
         $attributeInstance = $this->getAttribute($attribute);
-        if(!$attributeInstance){
-            return null;
+        if(!$attributeInstance || $attributeInstance->getBackendType() == 'static'){
+            $this->_selectQueries[]= " e.$attribute ";
+            return $this;
         }
         $attributeCode = $attributeInstance->getAttributeCode();
-        if($attributeInstance->getBackendType() == 'static'){
-            $this->_selectQueries[]= " $attributeCode ";
-        } else {
-            $this->_selectQueries[]= " $attributeCode.value as $attributeCode ";
-            $this->_buildJoinQuery($attributeInstance);
-
-        }
+        $this->_selectQueries[]= " $attributeCode.value as $attributeCode ";
+        $this->_buildJoinQuery($attributeInstance);
+        return $this;
     }
 
     private function _buildWhereQuery($attribute,$condition = '=',$value){

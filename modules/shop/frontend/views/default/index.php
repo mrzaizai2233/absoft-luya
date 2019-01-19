@@ -1,22 +1,25 @@
 <?php
-use luya\admin\image\Item;
 use app\modules\shop\frontend\assets\Main;
+use app\modules\shop\frontend\helpers\ImageHelper;
+use yii\helpers\Url;
 Main::register($this)
+/**
+ * @var \app\modules\shop\models\CatalogProductEntity[] $products
+ */
 ?>
-
 <ul class="products-grid columns4">
     <?php foreach ($products as $product) {?>
         <li>
             <div class="product">
                 <figure class="product-image-area">
-                    <a href="demo-shop-1-product-details.html" title="Product Name" class="product-image">
-                        <img src="<?= Item::create(['file_id'=>$product->getImage()])->getFile() ?>" alt="Product Name">
-                        <img src="<?= Item::create(['file_id'=>$product->getImage()])->getFile() ?>" alt="Product Name" class="product-hover-image">
+                    <a href="<?= Url::toRoute(['/shop/default/view', 'id' => $product->getEntityId()]) ?>" title="Product Name" class="product-image">
+                        <img src="<?= ImageHelper::getProductImage($product) ?>" alt="Product Name" class="img-responsive product-image" style="height: 250px">
+                        <img src="<?= ImageHelper::getProductImage($product) ?>" alt="Product Name" class="product-hover-image img-responsive" style="height: 250px">
                     </a>
 
                     <a href="#" class="product-quickview">
                         <i class="fa fa-share-square-o"></i>
-                        <span>Quick View</span>
+                        <span><?= \Yii::t('app','Xem nhanh') ?></span>
                     </a>
                     <div class="product-label"><span class="discount">-10%</span></div>
                     <div class="product-label"><span class="new">New</span></div>
@@ -35,14 +38,14 @@ Main::register($this)
                     </div>
 
                     <div class="product-actions">
-                        <a href="#" class="addtowishlist" title="Add to Wishlist">
+                        <a href="#" class="addtowishlist" title="<?= \Yii::t('app','Yêu thích') ?>">
                             <i class="fa fa-heart"></i>
                         </a>
-                        <a href="#" class="addtocart" title="Add to Cart">
+                        <a href="#" class="addtocart" title="<?= \Yii::t('app','Thêm vào giỏ') ?>">
                             <i class="fa fa-shopping-cart"></i>
-                            <span>Add to Cart</span>
+                            <span><?= \Yii::t('app','Thêm vào giỏ') ?></span>
                         </a>
-                        <a href="#" class="comparelink" title="Add to Compare">
+                        <a href="#" class="comparelink" title="<?= \Yii::t('app','So sánh') ?>">
                             <i class="glyphicon glyphicon-signal"></i>
                         </a>
                     </div>

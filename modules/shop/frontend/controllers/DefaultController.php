@@ -26,23 +26,27 @@ class DefaultController extends \luya\web\Controller
     }
 
     public function actionIndex(){
-        $product =$this->_productRepository
+//        echo \Yii::getAlias('@shop');
+//        die;
 
-            ->addAttributeToSelect('entity_id,name,price,short_description')
-            ->addFilterAttribute('entity_id','=',107)
-            ->one();
-var_dump($product);
-//        $this->_productRepository->runQuery();
-        die;
+        $products =$this->_productRepository
+            ->addAttributeToSelect('name,price,short_description,image')
+//            ->addFilterAttribute('entity_id','=',107)
+            ->all();
+//        var_dump($products);
+//        die;
+//var_dump($product);
+////        $this->_productRepository->runQuery();
+//        die;
 
 
-        $products = CatalogProductEntity::find()->all();
+//        $products = CatalogProductEntity::find()->all();
         return $this->render('index',compact('products'));
     }
 
     public function actionView($id){
-        echo $id;
-        die;
+        $product = $this->_productRepository->load($id);
+        return $this->render('view',compact('product'));
     }
 
 }

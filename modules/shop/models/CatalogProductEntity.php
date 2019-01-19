@@ -84,7 +84,9 @@ class CatalogProductEntity extends \yii\db\ActiveRecord
      */
     protected $_attributeValuesToSave = [];
 
-
+    /**
+     * @var string
+     */
     protected $_entityTable = 'catalog_product_entity';
 
     /**
@@ -319,6 +321,9 @@ class CatalogProductEntity extends \yii\db\ActiveRecord
     }
 
 
+    public function getDefaultAttributes(){
+        return static::DEFAULT_ATTRIBUTES;
+    }
 
     public function afterSave ( $insert , $changedAttributes )
     {

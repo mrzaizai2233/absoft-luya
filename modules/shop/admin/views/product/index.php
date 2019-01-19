@@ -49,7 +49,7 @@ use  luya\admin\ngrest\base\ActiveWindow;
             <td>{{product.sku}}</td>
             <td>
                 <a class="btn button-success" ui-sref="default.edit({id:product.entity_id})" >Edit</a>
-                <a class="btn btn-danger" ng-click="toUpdate(product.entity_id)">Custom</a>
+                <a class="btn btn-danger" ng-click="deleteProduct(product.entity_id)">Delete</a>
 
             </td>
         </tr>
