@@ -21,6 +21,13 @@ abstract class AbstractRepository
      * @var array
      */
     protected $_selectQueries = [];
+
+    /**
+     * The model to execute queries on
+     *
+     * @var array
+     */
+    protected $_whereQueries = [];
     /**
      * The model to execute queries on
      *
@@ -82,10 +89,8 @@ abstract class AbstractRepository
     }
 
     public function addAttributeToSelect($attribute){
-        if(strpos($attribute,',')!==false){
-            $this->_selectAttributes = explode(',',$attribute);
-        } elseif(strpos($attribute,',')===false) {
-            $this->_selectAttributes[] = $attribute;
+        if(is_string($attribute)) {
+            $this->_selectAttributes[$attribute] = $attribute;
         } elseif (is_array($attribute)){
             $this->_selectAttributes = $attribute;
         } else {
@@ -100,10 +105,10 @@ abstract class AbstractRepository
 
 
     public function addFilterAttribute($attribute,$condition,$value,$type= 'and'){
-        if(array_search($attribute,$this->getAttributeToSelect())){
+        if(!in_array($attribute,$this->getAttributeToSelect())){
             $this->addAttributeToSelect($attribute);
         }
-        $this->_filterAttributes[]=[$attribute,$condition,$value,$type];
+        $this->_filterAttributes[$attribute]=[$attribute,$condition,$value,$type];
         return $this;
     }
 
@@ -139,40 +144,72 @@ abstract class AbstractRepository
     public function getQuery(){
         return $this->_query;
     }
-    private function _prossAttributes(){
+    private function _processAttributes(){
         $attributes = array_merge($this->getAttributeToSelect(),$this->model->getDefaultAttributes());
         $uniqueAttributes = [];
         foreach ($attributes as $attribute) {
             $uniqueAttributes[$attribute]= $attribute;
         }
-        return $uniqueAttributes;
+        $this->addAttributeToSelect($uniqueAttributes);
+        return $this;
     }
     private function _query(){
-        $attributes = $this->_prossAttributes();
+        $this->_processAttributes();
+        $whereSql = null;
+        $selectQueries =[];
+        $joinTables =[];
+        $whereQueries =[];
+        $attributes = $this->getAttributeToSelect();
+        foreach ($attributes as $attribute) {
+            $attributeInstance = $this->getAttribute($attribute);
 
+            if(!$attributeInstance || $attributeInstance->getBackendType() == 'static'){
+                $selectQueries[$attribute]= " e.$attribute ";
+                continue;
+            }
+            $attributeCode = $attributeInstance->getAttributeCode();
+            $selectQueries[$attributeCode]= " $attributeCode.value as $attributeCode ";
+            $attributeValueTable = 'catalog_product_entity_'.$attributeInstance->getBackendType();
+            $joinTables[$attributeCode] = "
+                LEFT JOIN 
+                    $attributeValueTable $attributeCode 
+                    ON e.entity_id = $attributeCode.entity_id
+                AND $attributeCode.attribute_id =
+                (
+                   SELECT 
+                        attribute_id
+                   FROM 
+                        eav_attribute
+                   WHERE 
+                        attribute_code = '$attributeCode' AND entity_type_id = 4
+                )
+            ";
+        }
         $filterAttributes = $this->getFilterAttribute();
 
-        $whereSql = null;
-        $rawSql = "SELECT  {{SELECT}} FROM catalog_product_entity e {{JOIN}}";
-        foreach ($attributes as $attribute) {
-            $this->_buildSelectQuery($attribute);
-        }
-
-        $rawSql = str_replace('{{SELECT}}',implode(', ',$this->_selectQueries),$rawSql);
-        $rawSql = str_replace('{{JOIN}}',implode(' ',$this->_joinTables),$rawSql);
-
-        $rawSql = "SELECT * FROM ($rawSql) main {{WHERE}}";
-        $filterSql = "";
         foreach ($filterAttributes as $index => $filterAttribute) {
-            if($index==0){
-                $filterSql .= " WHERE ". $this->_buildWhereQuery($filterAttribute[0],$filterAttribute[1],$filterAttribute[2]);
+            $attribute = $filterAttribute[0];
+            $condition = $filterAttribute[1];
+            $value = $filterAttribute[2];
+            $joinType = $filterAttribute[3];
+            $attributeInstance = $this->getAttribute($attribute);
+            if(!$attributeInstance || $attributeInstance->getBackendType() == 'static'){
+                $whereQueries[$attribute]= " $joinType ( e.$attribute $condition '$value' ) ";
             } else {
-                $filterSql .= " ".$filterAttribute[3]." ". $this->_buildWhereQuery($filterAttribute[0],$filterAttribute[1],$filterAttribute[2]);
+                $whereQueries[$attribute] = " $joinType (  $attribute.value $condition '$value' ) ";
             }
         }
 
-        $rawSql = str_replace('{{WHERE}}',$filterSql,$rawSql);
+        $rawSql = "SELECT  {{SELECT}} FROM catalog_product_entity e {{JOIN}} WHERE 1=1 {{WHERE}}";
+
+
+        $rawSql = str_replace('{{SELECT}}',implode(', ',$selectQueries),$rawSql);
+        $rawSql = str_replace('{{JOIN}}',implode(' ',$joinTables),$rawSql);
+        $rawSql = str_replace('{{WHERE}}',implode(' ',$whereQueries),$rawSql);
+
+
         $this->setQuery($rawSql) ;
+        return \yii::$app->getDb()->createCommand($this->getQuery());
     }
 
     public function load($id){
@@ -181,16 +218,15 @@ abstract class AbstractRepository
 
     public function one(){
 
-        $this->_query();
-        $data = \yii::$app->getDb()->createCommand($this->getQuery())->queryOne();
+        $data = $this->_query()->queryOne();
         $this->model->attributes = $data;
         $this->model->setData($data);
         return $this->model;
     }
 
     public function all(){
-        $this->_query();
-        $datas = \yii::$app->getDb()->createCommand($this->getQuery())->queryAll();
+
+        $datas = $this->_query()->queryAll();
         $models = [];
         foreach ($datas as $data) {
             $model = $this->getNew();
@@ -201,6 +237,7 @@ abstract class AbstractRepository
         }
         return $models;
     }
+
     private function _buildJoinQuery($attribute){
         $attributeInstance = $this->getAttribute($attribute);
         $attributeCode = $attributeInstance->getAttributeCode();
@@ -219,28 +256,43 @@ abstract class AbstractRepository
                     attribute_code = '$attributeCode' AND entity_type_id = 4
             )
         ";
-        return $this->_joinTables[$attributeCode] = $joinSql;
+        return $joinSql;
     }
 
-    private function _buildSelectQuery($attribute){
-        $attributeInstance = $this->getAttribute($attribute);
-        if(!$attributeInstance || $attributeInstance->getBackendType() == 'static'){
-            $this->_selectQueries[]= " e.$attribute ";
-            return $this;
+    /**
+     * @return $this
+     */
+    public function buildSelectQuery(){
+        $attributes = $this->getAttributeToSelect();
+        foreach ($attributes as $attribute) {
+            $attributeInstance = $this->getAttribute($attribute);
+
+            if(!$attributeInstance || $attributeInstance->getBackendType() == 'static'){
+                $this->_selectQueries[]= " e.$attribute ";
+                continue;
+            }
+            $attributeCode = $attributeInstance->getAttributeCode();
+            $this->_selectQueries[]= " $attributeCode.value as $attributeCode ";
+            $this->_buildJoinQuery($attributeInstance);
         }
-        $attributeCode = $attributeInstance->getAttributeCode();
-        $this->_selectQueries[]= " $attributeCode.value as $attributeCode ";
-        $this->_buildJoinQuery($attributeInstance);
         return $this;
     }
 
-    private function _buildWhereQuery($attribute,$condition = '=',$value){
-        if ($condition == 'in') {
-            $whereSql = " $attribute $condition in ($value) ";
-        } else {
-            $whereSql = " $attribute $condition '$value' ";
+    public function buildWhereQuery(){
+        $filterAttributes = $this->getFilterAttribute();
+
+        foreach ($filterAttributes as $index => $filterAttribute) {
+            $attribute = $filterAttribute[0];
+            $condition = $filterAttribute[1];
+            $value = $filterAttribute[2];
+            $joinType = $filterAttribute[3];
+            $attributeInstance = $this->getAttribute($attribute);
+            if(!$attributeInstance || $attributeInstance->getBackendType() == 'static'){
+                $this->_whereQueries[$attribute]= " $joinType ( e.$attribute $condition '$value' ) ";
+            } else {
+                $this->_whereQueries[$attribute] = " $joinType (  $attribute.value $condition '$value' ) ";
+            }
         }
-        return $whereSql;
     }
 
     /**

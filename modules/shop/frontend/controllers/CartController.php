@@ -37,21 +37,24 @@ class CartController extends \luya\web\Controller
         $session = Yii::$app->session;
 
         $product = $this->_productRepository->load($request->get('product_id'));
-        if($product){
-
-            $cart = $session->get('cart');
-            if($cart){
-                $quote = $this->newQuote();
-                $quote->items_count = 1;
-                $quote->items_qty = $request->get('qty');
-                $session->set('cart',['quote_id'=>'']);
-            }
-
-
-
-        } else {
-            $session->addFlash('error','Product not found !');
+        if(!$product) {
+            $session->addFlash( 'error' , 'Product not found !' );
         }
+        $cart = $session->get('cart');
+        if(!$cart){
+            $quote = $this->newQuote();
+            $quote->items_count = 1;
+            $quote->items_qty = $request->get('qty');
+            if($quote->save()){
+                $session->set('cart',['quote_id'=>$quote->entity_id]);
+            };
+        } else {
+            $cartSession = $session->get('cart');
+            $quote_id = $cartSession['quote_id'];
+            $quote = Quote::findOne($quote_id);
+
+        }
+
 
 
     }

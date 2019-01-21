@@ -30,8 +30,9 @@ class DefaultController extends \luya\web\Controller
 //        die;
 
         $products =$this->_productRepository
-            ->addAttributeToSelect('name,price,short_description,image')
+            ->addAttributeToSelect('name','price','short_description','image')
 //            ->addFilterAttribute('entity_id','=',107)
+            ->addFilterAttribute('status','=',1)
             ->all();
 //        var_dump($products);
 //        die;
