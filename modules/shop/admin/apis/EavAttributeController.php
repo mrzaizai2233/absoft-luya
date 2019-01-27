@@ -60,4 +60,9 @@ class EavAttributeController extends \luya\admin\base\RestController
             return Yii::t('app','request not match');
         }
     }
+
+    public function actionAttributes(){
+        $query = EavAttribute::find();
+        return $query->all();
+    }
 }
