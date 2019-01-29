@@ -19,12 +19,6 @@ class Module extends \luya\admin\base\Module
     ];
 
 
-    public function init ()
-    {
-        \Yii::$container->set('app\modules\shop\models\Repositories\Product','app\modules\shop\models\Repositories\Product');
-        parent::init();
-    }
-
     public function getAdminAssets()
     {
         return [
@@ -37,6 +31,7 @@ class Module extends \luya\admin\base\Module
         return (new \luya\admin\components\AdminMenuBuilder($this))
             ->node('Shop', 'store_mall_directory')
             ->group('Catalog')
-            ->itemRoute("Products", "shopadmin/product/index", "poll");
+            ->itemRoute("Products", "shopadmin/product/index", "poll")
+            ->itemRoute("Attributes", "shopadmin/attribute/index", "poll");
     }
 }

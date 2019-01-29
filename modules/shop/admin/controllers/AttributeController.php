@@ -17,9 +17,7 @@ use Yii;
 class AttributeController extends \luya\admin\base\Controller
 {
     public function actionIndex(){
-
-        $model = new CatalogProductEntity();
-        return $this->render('index',compact('model'));
+        return $this->render('index');
     }
 
     public function actionCreate(){
