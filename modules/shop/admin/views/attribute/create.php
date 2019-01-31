@@ -4,23 +4,16 @@
         $scope.page_title = 'Update Attribute';
         $scope.isUpdate = true;
         $scope.attribute= {};
-        (function () {
-            $http.get('admin/api-shop-attribute/view?id='+$stateParams.id).then(function(response){
-                $scope.attribute = response.data
-            })
-        })();
         $scope.addOption = function(){
             $scope.attribute.options = $scope.attribute.options?$scope.attribute.options:[]
             $scope.attribute.options.push({})
         }
         $scope.removeOption = function(i){
-            $scope.attribute.options = $scope.attribute.options.filter(function(elem,index){
-                return i!==index
-            })
+            $scope.attribute.options.splice(i,1)
         }
         $scope.submit = function(){
-            $http.post('admin/api-shop-attribute/update?id='+$scope.attribute.attribute,$scope.attribute).then(function(response){
-                $window.history.back();
+            $http.post('admin/api-shop-attribute/create',$scope.attribute).then(function(response){
+//                $window.history.back();
             })
         }
     }])

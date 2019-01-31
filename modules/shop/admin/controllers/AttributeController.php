@@ -16,6 +16,9 @@ use luya\admin\base\Module;
 use Yii;
 class AttributeController extends \luya\admin\base\Controller
 {
+
+    public $disablePermissionCheck = true;
+
     public function actionIndex(){
         return $this->render('index');
     }

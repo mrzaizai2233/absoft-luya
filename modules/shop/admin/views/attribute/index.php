@@ -14,8 +14,8 @@
             $state.go('default.update',{actionId:'update?id='+id})
 
         }
-        $scope.deleteProduct=function(id){
-            $http.post('admin/api-shop-product/delete',{id:id}).then(function(response){
+        $scope.deleteAttribute=function(id){
+            $http.post('admin/api-shop-attribute/delete',{id:id}).then(function(response){
                 $scope.products = $scope.products.filter(function(product){
                     return product.entity_id !==id
                 })
@@ -29,7 +29,7 @@
 
 <div class="luya-content" ng-controller="IndexController">
     <h1>Attributes</h1>
-    <a class="btn button-primary" ui-sref="default.create">Create</a>
+    <a class="btn button-primary" ui-sref="default.attribute_create">Create</a>
     <table class="table table-hover">
         <thead>
         <tr>
@@ -49,8 +49,8 @@
             <td>{{attribute.is_required}}</td>
             <td>{{attribute.is_user_defined}}</td>
             <td>
-                <a class="btn button-success" ui-sref="default.edit({id:product.entity_id})" >Edit</a>
-                <a class="btn btn-danger" ng-click="deleteProduct(product.entity_id)">Delete</a>
+                <a class="btn button-success" ui-sref="default.attribute_edit({id:attribute.attribute_id})" >Edit</a>
+                <a class="btn btn-danger" ng-click="deleteAttribute(product.entity_id)">Delete</a>
             </td>
         </tr>
         </tbody>

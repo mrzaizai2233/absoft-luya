@@ -42,27 +42,31 @@ class EavAttributeController extends \luya\admin\base\RestController
         return $query->all();
     }
     public function actionCreate(){
-        $request = Yii::$app->getRequest();
-        if($request->isPost){
-            $requestData = $request->post();
-            $product = new CatalogProductEntity();
-            $product->attribute_set_id = $requestData['attribute_set_id'];
-            unset($requestData['attribute_set_id']);
-            $product->type_id = $requestData['type_id'];
-            unset($requestData['type_id']);
-            $product->setData($requestData);
-            if(!$product->save()){
-                return $product->getErrors();
-            } else {
-                return $product;
-            }
-        } else {
-            return Yii::t('app','request not match');
-        }
+        $request = Yii::$app->getRequest()->post();
+        $requestData = $request;
+        var_dump(Yii::$app->getRequest()->post());
+        die;
+        $attributeInstance = new EavAttribute();
+        $attributeInstance->attributes = $requestData;
+
     }
 
     public function actionAttributes(){
         $query = EavAttribute::find();
         return $query->all();
+    }
+
+    public function actionView($id){
+        return EavAttribute::findOne($id);
+    }
+
+    public function actionUpdate(){
+        $request = Yii::$app->getRequest();
+        $requestData = $request->post();
+        var_dump($requestData);
+        die;
+        $attributeInstance = EavAttribute::findOne($requestData['attribute_id']);
+        $attributeInstance->attributes = $requestData;
+
     }
 }
