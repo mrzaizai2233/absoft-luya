@@ -9,6 +9,7 @@ use Yii;
  *
  * @property int $option_id Option Id
  * @property int $attribute_id Attribute Id
+ * @property string $value Value
  * @property int $sort_order Sort Order
  *
  * @property EavAttribute $attribute0
@@ -31,6 +32,7 @@ class EavAttributeOption extends \yii\db\ActiveRecord
     {
         return [
             [['attribute_id', 'sort_order'], 'integer'],
+            [['value'], 'string', 'max' => 255] ,
             [['attribute_id'], 'exist', 'skipOnError' => true, 'targetClass' => EavAttribute::className(), 'targetAttribute' => ['attribute_id' => 'attribute_id']],
         ];
     }

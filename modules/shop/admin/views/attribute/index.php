@@ -3,7 +3,8 @@
     zaa.bootstrap.register('IndexController', ['$scope', '$http','$location','$state' ,function($scope, $http,$location,$state) {
 
         $scope.attributes=[];
-
+        $scope.isModalHidden = 1;
+        $scope.slug = null;
         $scope.loadAttributes = function () {
             $http.get('admin/api-shop-attribute').then(function(response) {
                 $scope.attributes = response.data;
@@ -16,8 +17,8 @@
         }
         $scope.deleteAttribute=function(id){
             $http.post('admin/api-shop-attribute/delete',{id:id}).then(function(response){
-                $scope.products = $scope.products.filter(function(product){
-                    return product.entity_id !==id
+                $scope.attributes = $scope.attributes.filter(function(attribute){
+                    return attribute.attribute_id !==id
                 })
 
             })
@@ -28,6 +29,11 @@
 </script>
 
 <div class="luya-content" ng-controller="IndexController">
+    {{isModalHidden}}
+    <modal is-modal-hidden="isModalHidden" modal-title="isModalHidden">
+        adasdsad
+    </modal>
+    <button ng-click="isModalHidden=!isModalHidden">Show Modal</button>
     <h1>Attributes</h1>
     <a class="btn button-primary" ui-sref="default.attribute_create">Create</a>
     <table class="table table-hover">
@@ -50,7 +56,7 @@
             <td>{{attribute.is_user_defined}}</td>
             <td>
                 <a class="btn button-success" ui-sref="default.attribute_edit({id:attribute.attribute_id})" >Edit</a>
-                <a class="btn btn-danger" ng-click="deleteAttribute(product.entity_id)">Delete</a>
+                <a ng-show="attribute.is_user_defined" class="btn btn-danger" ng-click="deleteAttribute(attribute.attribute_id)">Delete</a>
             </td>
         </tr>
         </tbody>

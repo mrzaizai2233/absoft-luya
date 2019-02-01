@@ -3,6 +3,7 @@
 <form ng-submit="submit()" class="form-horizontal" role="form">
     {{attribute}}
     <input type="hidden"  ng-init="attribute.entity_type_id=4">
+    <input type="hidden"  ng-init="attribute.is_user_defined=1">
     <div class="form-group">
         <legend>{{page_title}}</legend>
 
@@ -57,7 +58,7 @@
             <div class="form-group">
                 <label for="attribute_code" class="col-sm-12 col-md-12 control-label">Attribute Code</label>
                 <div class="col-sm-4 col-md-4">
-                    <input id="attribute_code" name="attribute_code" class="form-control"
+                    <input id="attribute_code" name="attribute_code" class="form-control" ng-readonly="isUpdate"
                            ng-model="attribute.attribute_code">
                 </div>
             </div>
@@ -73,7 +74,8 @@
         <div class="card-header">Manage Options (Values of Your Attribute)</div>
         <div class="card-body">
             <div ng-repeat="(index,option) in attribute.options" class="input-group mb-3">
-                <input type="text" class="form-control" ng-model="option.name">
+                <input type="text" class="form-control" ng-model="option.value">
+                <input type="text" class="form-control" ng-model="option.sort_order">
                 <div class="input-group-append">
                     <button class="btn btn-primary" type="button" ng-click="removeOption(index)">Remove</button>
                 </div>

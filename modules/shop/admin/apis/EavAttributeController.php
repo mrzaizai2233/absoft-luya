@@ -42,13 +42,18 @@ class EavAttributeController extends \luya\admin\base\RestController
         return $query->all();
     }
     public function actionCreate(){
-        $request = Yii::$app->getRequest()->post();
-        $requestData = $request;
-        var_dump(Yii::$app->getRequest()->post());
-        die;
+        $request = Yii::$app->getRequest();
+        $requestData = $request->post();
         $attributeInstance = new EavAttribute();
         $attributeInstance->attributes = $requestData;
-
+        if(isset($requestData['options'])) {
+            $attributeInstance->setOptions($requestData['options']);
+        }
+        if(!$attributeInstance->save()){
+            return $attributeInstance->getErrors();
+        } else {
+            return 1;
+        }
     }
 
     public function actionAttributes(){
@@ -57,16 +62,29 @@ class EavAttributeController extends \luya\admin\base\RestController
     }
 
     public function actionView($id){
-        return EavAttribute::findOne($id);
+        return EavAttribute::find()
+            ->with('options')
+            ->where(['eav_attribute.attribute_id'=>$id])
+            ->asArray()
+            ->one();
     }
 
     public function actionUpdate(){
         $request = Yii::$app->getRequest();
         $requestData = $request->post();
-        var_dump($requestData);
-        die;
         $attributeInstance = EavAttribute::findOne($requestData['attribute_id']);
         $attributeInstance->attributes = $requestData;
+        if(isset($requestData['options'])) {
+            $attributeInstance->setOptions($requestData['options']);
+        }
+        if(!$attributeInstance->save()){
+            return $attributeInstance->getErrors();
+        } else {
+            return 1;
+        }
+    }
 
+    public function actionDelete(){
+        return EavAttribute::deleteAll(['attribute_id'=>Yii::$app->request->post('id')]);
     }
 }

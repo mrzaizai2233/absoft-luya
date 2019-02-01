@@ -2,7 +2,7 @@
 <script>
     zaa.bootstrap.register('CreateController',['$scope','$rootScope','$http','$window','$location', '$stateParams',function($scope,$rootScope,$http,$window,$location,$stateParams){
         $scope.page_title = 'Update Attribute';
-        $scope.isUpdate = true;
+        $scope.isUpdate = false;
         $scope.attribute= {};
         $scope.addOption = function(){
             $scope.attribute.options = $scope.attribute.options?$scope.attribute.options:[]
