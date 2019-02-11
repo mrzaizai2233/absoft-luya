@@ -10,6 +10,13 @@
                 $scope.attribute_sets = response.data
             })
         }
+        $scope.attributes = {}
+        $scope.getAttributes= function(){
+            $http.get('admin/api-shop-attribute/get-attributes').then(function(response){
+                $scope.attributes = response.data
+            })
+        }
+        $scope.getAttributes();
         $scope.getAttributeSets();
         $scope.submit = function(){
             $http.post('admin/api-shop-product/create',$scope.product).then(function(){

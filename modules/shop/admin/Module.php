@@ -16,6 +16,7 @@ class Module extends \luya\admin\base\Module
     public $apis = [
         'api-shop-product' => 'app\modules\shop\admin\apis\ProductController' ,
         'api-shop-attribute' => 'app\modules\shop\admin\apis\EavAttributeController' ,
+        'api-shop-attribute-set' => 'app\modules\shop\admin\apis\EavAttributeSetController' ,
     ];
 
 
@@ -32,6 +33,7 @@ class Module extends \luya\admin\base\Module
             ->node('Shop', 'store_mall_directory')
             ->group('Catalog')
             ->itemRoute("Products", "shopadmin/product/index", "poll")
-            ->itemRoute("Attributes", "shopadmin/attribute/index", "poll");
+            ->itemRoute("Attributes", "shopadmin/attribute/index", "poll")
+            ->itemRoute("Attribute set", "shopadmin/attribute-set/index", "poll");
     }
 }

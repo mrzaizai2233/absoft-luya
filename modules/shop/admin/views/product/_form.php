@@ -10,7 +10,17 @@ use luya\admin\helpers\Angular;
     </div>
     <input type="hidden"  ng-init="product.attribute_set_id=4">
     <input type="hidden"  ng-init="product.type_id='simple'">
-
+    <div class="form-body" ng-repeat="attribute in attributes">
+        <zaa-text ng-if="attribute.frontend_input=='text'"  model="product[attribute.attribute_code]" label="{{attribute.frontend_label}}"></zaa-text>
+<!--        <zaa-number ng-if="attribute.backend_type=='decimal'" ng-model="product[attribute.attribute_code]" label="{{attribute.frontend_label}}"></zaa-number>-->
+        <zaa-textarea ng-if="attribute.frontend_input=='textarea'" model="product[attribute.attribute_code]" label="{{attribute.frontend_label}}"></zaa-textarea>
+        <zaa-datetime ng-if="attribute.frontend_input=='date'" model="product[attribute.attribute_code]" label="{{attribute.frontend_label}}"></zaa-datetime>
+        <zaa-radio ng-if="attribute.frontend_input=='boolean'" model="product[attribute.attribute_code]" label="{{attribute.frontend_label}}" options="[{label:'Yes', value: '1'},{label:'No', value: '0'}]"></zaa-radio>
+        <zaa-select ng-if="attribute.frontend_input=='select'"
+                    model="product[attribute.attribute_code]"
+                    label="{{attribute.frontend_label}}"
+                    options="attribute.options" optionslabel="value" optionsvalue="option_id"></zaa-select>
+    </div>
 
 <!--    <div class="form-group">-->
 <!--        <label for="attribute_set" class="col-sm-2 control-label">Attribute Set</label>-->
@@ -84,6 +94,9 @@ use luya\admin\helpers\Angular;
             <textarea type="text" class="form-control" id="description" ng-model="product.description" placeholder=""></textarea>
         </div>
     </div>
+
+
+
     <?= Angular::fileUpload('product.image','Images') ?>
     <div class="form-group">
         <div class="col-sm-10 col-sm-offset-2">

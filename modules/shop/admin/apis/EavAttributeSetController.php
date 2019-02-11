@@ -17,20 +17,10 @@ use yii\data\ActiveDataProvider;
 use yii\db\Query;
 
 
-class EavAttributeController extends \luya\admin\base\RestController
+class EavAttributeSetController extends \luya\admin\base\RestController
 {
     public function actionIndex(){
-
-        $request = Yii::$app->getRequest();
-
-        $attribute_set_id = $request->get('attribute_set_id')? $request->get('attribute_set_id'): '';
-
-        $query = EavAttribute::find();
-        if($attribute_set_id){
-            $query->leftJoin('eav_entity_attribute','eav_attribute.attribute_id = eav_entity_attribute.attribute_id')
-                ->where(['eav_entity_attribute.attribute_set_id'=>$attribute_set_id]);
-        }
-        return $query->all();
+        return EavAttributeSet::find()->all();
     }
 
     public function actionGetAttributeSets(){
@@ -54,15 +44,11 @@ class EavAttributeController extends \luya\admin\base\RestController
         return $dataProvider->query->all();
     }
     public function actionCreate(){
-        $request = Yii::$app->getRequest();
-        $requestData = $request->post();
-        $attributeInstance = new EavAttribute();
-        $attributeInstance->attributes = $requestData;
-        if(isset($requestData['options'])) {
-            $attributeInstance->setOptions($requestData['options']);
-        }
-        if(!$attributeInstance->save()){
-            return $attributeInstance->getErrors();
+        $attributeSetInstance = new EavAttributeSet();
+        $attributeSetInstance->attributes = Yii::$app->getRequest()->post();
+
+        if(!$attributeSetInstance->save()){
+            return $attributeSetInstance->getErrors();
         } else {
             return 1;
         }

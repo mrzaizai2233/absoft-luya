@@ -23,5 +23,10 @@ zaa.config(['$httpProvider', '$stateProvider', '$controllerProvider', '$urlMatch
             templateUrl: function ($stateParams) {
                 return "shopadmin/attribute/update?id="+$stateParams.id
             }
+        }) .state("default.attribute_set_edit", {
+            url: "/attribute-set/edit?id",
+            templateUrl: function ($stateParams) {
+                return "shopadmin/attribute-set/update?id="+$stateParams.id
+            }
         })
 }]);
